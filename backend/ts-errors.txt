@@ -1,0 +1,260 @@
+﻿src/modules/accounts/accounts.controller.ts(17,49): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/accounts/accounts.controller.ts(27,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/accounts/accounts.controller.ts(32,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/accounts/accounts.entity.ts(9,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.entity.ts(10,29): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.entity.ts(11,75): error TS2564: Property 'type' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.entity.ts(12,49): error TS2564: Property 'isActive' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.entity.ts(13,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.entity.ts(14,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.entity.ts(15,53): error TS2564: Property 'paymentMethods' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.entity.ts(16,52): error TS2564: Property 'cashMovements' has no initializer and is not definitely assigned in the constructor.
+src/modules/accounts/accounts.service.ts(23,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<Account>[]): Account[]', gave the following error.
+    Argument of type 'CreateAccountDto' is not assignable to parameter of type 'DeepPartial<Account>[]'.
+      Type 'CreateAccountDto' is missing the following properties from type 'DeepPartial<Account>[]': length, pop, push, concat, and 29 more.
+  Overload 2 of 3, '(entityLike: DeepPartial<Account>): Account', gave the following error.
+    Argument of type 'CreateAccountDto' is not assignable to parameter of type 'DeepPartial<Account>'.
+      Type 'CreateAccountDto' is not assignable to type '{ id?: string | undefined; name?: string | undefined; type?: DeepPartial<AccountType> | undefined; isActive?: DeepPartial<boolean> | undefined; createdAt?: DeepPartial<...> | undefined; updatedAt?: DeepPartial<...> | undefined; paymentMethods?: DeepPartial<...> | undefined; cashMovements?: DeepPartial<...> | undefin...'.
+        Types of property 'type' are incompatible.
+          Type '"CASH" | "BANK" | "DIGITAL_WALLET" | "OTHER" | undefined' is not assignable to type 'DeepPartial<AccountType> | undefined'.
+            Type '"CASH"' is not assignable to type 'DeepPartial<AccountType> | undefined'.
+src/modules/accounts/accounts.service.ts(24,5): error TS2740: Type 'Account[]' is missing the following properties from type 'Account': id, name, type, isActive, and 4 more.
+src/modules/auth/auth.service.ts(63,16): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: null, options?: (SignOptions & { algorithm: "none"; }) | undefined): string', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'null'.
+  Overload 2 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, options?: SignOptions | undefined): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue | undefined'.
+  Overload 3 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, callback: SignCallback): void', gave the following error.
+    Object literal may only specify known properties, and 'expiresIn' does not exist in type 'SignCallback'.
+src/modules/cash-register/cash-movement.entity.ts(7,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(8,41): error TS2564: Property 'cashRegisterId' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(9,96): error TS2564: Property 'cashRegister' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(10,35): error TS2564: Property 'accountId' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(11,87): error TS2564: Property 'account' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(12,63): error TS2564: Property 'amount' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(13,34): error TS2564: Property 'type' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(14,31): error TS2564: Property 'description' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(15,31): error TS2564: Property 'reference' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(16,51): error TS2564: Property 'paymentId' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-movement.entity.ts(17,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.controller.ts(28,55): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/cash-register/cash-register.controller.ts(34,51): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/cash-register/cash-register.entity.ts(8,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(9,23): error TS2564: Property 'date' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(10,87): error TS2564: Property 'initialAmount' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(11,89): error TS2564: Property 'finalAmount' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(12,89): error TS2564: Property 'status' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(13,34): error TS2564: Property 'openedBy' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(14,50): error TS2564: Property 'closedBy' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(15,70): error TS2564: Property 'openedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(16,50): error TS2564: Property 'closedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(17,31): error TS2564: Property 'notes' has no initializer and is not definitely assigned in the constructor.
+src/modules/cash-register/cash-register.entity.ts(18,76): error TS2564: Property 'movements' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(14,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(17,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(20,3): error TS2564: Property 'description' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(23,3): error TS2564: Property 'icon' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(26,3): error TS2564: Property 'isActive' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(29,3): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(32,3): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/categories/categories.entity.ts(35,3): error TS2564: Property 'products' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.controller.ts(16,48): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.controller.ts(26,46): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.controller.ts(31,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.controller.ts(36,51): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.entity.ts(7,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(8,13): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(9,45): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(10,31): error TS2564: Property 'phone' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(11,31): error TS2564: Property 'document' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(12,31): error TS2564: Property 'address' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(13,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(14,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(15,42): error TS2564: Property 'orders' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.entity.ts(16,56): error TS2564: Property 'collectionAccounts' has no initializer and is not definitely assigned in the constructor.
+src/modules/clients/clients.routes.ts(5,10): error TS2724: '"./clients.controller"' has no exported member named 'ClientsController'. Did you mean 'ClientController'?
+src/modules/clients/clients.routes.ts(11,26): error TS2554: Expected 3 arguments, but got 1.
+src/modules/collections/collection-payment.entity.ts(7,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(8,63): error TS2564: Property 'amount' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(9,42): error TS2564: Property 'paymentMethodId' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(10,78): error TS2564: Property 'paymentMethod' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(11,31): error TS2564: Property 'reference' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(12,46): error TS2564: Property 'collectionAccountId' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(13,105): error TS2564: Property 'collectionAccount' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(14,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collection-payment.entity.ts(15,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.controller.ts(16,52): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/collections/collections.controller.ts(26,56): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/collections/collections.entity.ts(9,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(10,63): error TS2564: Property 'totalAmount' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(11,63): error TS2564: Property 'paidAmount' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(12,88): error TS2564: Property 'status' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(13,31): error TS2564: Property 'notes' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(14,34): error TS2564: Property 'clientId' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(15,90): error TS2564: Property 'client' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(16,86): error TS2564: Property 'payments' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(17,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(18,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/collections/collections.entity.ts(19,49): error TS2564: Property 'dueDate' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(7,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(8,27): error TS2564: Property 'quantity' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(9,71): error TS2564: Property 'unitPrice' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(10,63): error TS2564: Property 'subtotal' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(11,31): error TS2564: Property 'notes' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(12,33): error TS2564: Property 'orderId' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(13,75): error TS2564: Property 'order' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(14,35): error TS2564: Property 'productId' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(15,65): error TS2564: Property 'product' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(16,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/order-item.entity.ts(17,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.controller.ts(23,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(33,45): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(38,48): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(43,35): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(48,50): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(53,52): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(58,51): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.entity.ts(13,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(14,75): error TS2564: Property 'status' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(15,31): error TS2564: Property 'notes' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(16,63): error TS2564: Property 'subtotal' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(17,63): error TS2564: Property 'tax' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(18,63): error TS2564: Property 'total' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(19,63): error TS2564: Property 'discount' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(20,49): error TS2564: Property 'tableId' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(21,67): error TS2564: Property 'table' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(22,32): error TS2564: Property 'userId' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(23,59): error TS2564: Property 'user' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(24,50): error TS2564: Property 'clientId' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(25,63): error TS2564: Property 'client' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(26,66): error TS2564: Property 'items' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(27,43): error TS2564: Property 'payments' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(28,42): error TS2564: Property 'invoice' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(29,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(30,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.entity.ts(31,50): error TS2564: Property 'closedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/orders/orders.routes.ts(8,10): error TS2724: '"./orders.controller"' has no exported member named 'OrdersController'. Did you mean 'OrderController'?
+src/modules/orders/orders.routes.ts(17,82): error TS2554: Expected 3 arguments, but got 4.
+src/modules/payment-methods/payment-methods.controller.ts(17,48): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payment-methods/payment-methods.controller.ts(22,53): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payment-methods/payment-methods.controller.ts(32,46): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payment-methods/payment-methods.controller.ts(37,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payment-methods/payment-methods.entity.ts(8,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(9,29): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(10,35): error TS2564: Property 'accountId' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(11,88): error TS2564: Property 'account' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(12,49): error TS2564: Property 'isActive' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(13,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(14,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(15,51): error TS2564: Property 'payments' has no initializer and is not definitely assigned in the constructor.
+src/modules/payment-methods/payment-methods.entity.ts(16,63): error TS2564: Property 'collectionPayments' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(6,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(7,53): error TS2564: Property 'invoiceNumber' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(8,63): error TS2564: Property 'subtotal' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(9,63): error TS2564: Property 'tax' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(10,63): error TS2564: Property 'total' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(11,63): error TS2564: Property 'discount' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(12,31): error TS2564: Property 'nit' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(13,31): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(14,31): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(15,47): error TS2564: Property 'orderId' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(16,76): error TS2564: Property 'order' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(17,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/invoice.entity.ts(18,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.controller.ts(16,52): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payments/payments.entity.ts(8,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(9,63): error TS2564: Property 'amount' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(10,42): error TS2564: Property 'paymentMethodId' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(11,78): error TS2564: Property 'paymentMethod' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(12,31): error TS2564: Property 'reference' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(13,33): error TS2564: Property 'orderId' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(14,78): error TS2564: Property 'order' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(15,32): error TS2564: Property 'userId' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(16,59): error TS2564: Property 'user' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(17,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.entity.ts(18,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/payments/payments.routes.ts(8,10): error TS2724: '"./payments.controller"' has no exported member named 'PaymentsController'. Did you mean 'PaymentController'?
+src/modules/payments/payments.routes.ts(17,84): error TS2554: Expected 3 arguments, but got 4.
+src/modules/payments/payments.service.ts(73,7): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<Invoice>[]): Invoice[]', gave the following error.
+    Object literal may only specify known properties, and 'invoiceNumber' does not exist in type 'DeepPartial<Invoice>[]'.
+src/modules/payments/payments.service.ts(84,5): error TS2740: Type 'Invoice[]' is missing the following properties from type 'Invoice': id, invoiceNumber, subtotal, tax, and 9 more.
+src/modules/print/print.service.ts(49,41): error TS2339: Property 'consecutive' does not exist on type 'Order'.
+src/modules/print/print.service.ts(98,45): error TS2339: Property 'consecutive' does not exist on type 'Invoice'.
+src/modules/print/print.service.ts(101,17): error TS2339: Property 'clientName' does not exist on type 'Invoice'.
+src/modules/print/print.service.ts(101,68): error TS2339: Property 'clientName' does not exist on type 'Invoice'.
+src/modules/products/movement.entity.ts(7,35): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(8,13): error TS2564: Property 'type' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(9,13): error TS2564: Property 'quantity' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(10,31): error TS2564: Property 'description' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(11,35): error TS2564: Property 'productId' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(12,65): error TS2564: Property 'product' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(13,32): error TS2564: Property 'userId' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(14,59): error TS2564: Property 'user' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(15,45): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/movement.entity.ts(16,45): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.controller.ts(17,49): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/products/products.controller.ts(27,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/products/products.controller.ts(32,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/products/products.controller.ts(37,56): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/products/products.entity.ts(9,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(12,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(15,3): error TS2564: Property 'description' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(18,3): error TS2564: Property 'price' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(21,3): error TS2564: Property 'cost' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(24,3): error TS2564: Property 'categoryId' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(28,3): error TS2564: Property 'category' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(31,3): error TS2564: Property 'isActive' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(34,3): error TS2564: Property 'stock' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(37,3): error TS2564: Property 'imageUrl' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(40,3): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(43,3): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(46,3): error TS2564: Property 'orderItems' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.entity.ts(49,3): error TS2564: Property 'movements' has no initializer and is not definitely assigned in the constructor.
+src/modules/products/products.routes.ts(5,10): error TS2724: '"./products.controller"' has no exported member named 'ProductsController'. Did you mean 'ProductController'?
+src/modules/tables/tables.entity.ts(20,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/tables/tables.entity.ts(23,3): error TS2564: Property 'number' has no initializer and is not definitely assigned in the constructor.
+src/modules/tables/tables.entity.ts(26,3): error TS2564: Property 'status' has no initializer and is not definitely assigned in the constructor.
+src/modules/tables/tables.entity.ts(29,3): error TS2564: Property 'capacity' has no initializer and is not definitely assigned in the constructor.
+src/modules/tables/tables.entity.ts(32,3): error TS2564: Property 'location' has no initializer and is not definitely assigned in the constructor.
+src/modules/tables/tables.entity.ts(35,3): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/tables/tables.entity.ts(38,3): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/tables/tables.entity.ts(41,3): error TS2564: Property 'orders' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(21,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(24,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(27,3): error TS2564: Property 'password' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(30,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(33,3): error TS2564: Property 'role' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(36,3): error TS2564: Property 'isActive' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(39,3): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(42,3): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(45,3): error TS2564: Property 'orders' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/users.entity.ts(48,3): error TS2564: Property 'payments' has no initializer and is not definitely assigned in the constructor.

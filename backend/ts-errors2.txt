@@ -1,0 +1,83 @@
+﻿src/modules/accounts/accounts.controller.ts(17,49): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/accounts/accounts.controller.ts(27,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/accounts/accounts.controller.ts(32,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/accounts/accounts.service.ts(23,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<Account>[]): Account[]', gave the following error.
+    Argument of type 'CreateAccountDto' is not assignable to parameter of type 'DeepPartial<Account>[]'.
+      Type 'CreateAccountDto' is missing the following properties from type 'DeepPartial<Account>[]': length, pop, push, concat, and 29 more.
+  Overload 2 of 3, '(entityLike: DeepPartial<Account>): Account', gave the following error.
+    Argument of type 'CreateAccountDto' is not assignable to parameter of type 'DeepPartial<Account>'.
+      Type 'CreateAccountDto' is not assignable to type '{ id?: string | undefined; name?: string | undefined; type?: DeepPartial<AccountType> | undefined; isActive?: DeepPartial<boolean> | undefined; createdAt?: DeepPartial<...> | undefined; updatedAt?: DeepPartial<...> | undefined; paymentMethods?: DeepPartial<...> | undefined; cashMovements?: DeepPartial<...> | undefin...'.
+        Types of property 'type' are incompatible.
+          Type '"CASH" | "BANK" | "DIGITAL_WALLET" | "OTHER" | undefined' is not assignable to type 'DeepPartial<AccountType> | undefined'.
+            Type '"CASH"' is not assignable to type 'DeepPartial<AccountType> | undefined'.
+src/modules/accounts/accounts.service.ts(24,5): error TS2740: Type 'Account[]' is missing the following properties from type 'Account': id, name, type, isActive, and 4 more.
+src/modules/auth/auth.service.ts(63,16): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: null, options?: (SignOptions & { algorithm: "none"; }) | undefined): string', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'null'.
+  Overload 2 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, options?: SignOptions | undefined): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue | undefined'.
+  Overload 3 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, callback: SignCallback): void', gave the following error.
+    Object literal may only specify known properties, and 'expiresIn' does not exist in type 'SignCallback'.
+src/modules/cash-register/cash-register.controller.ts(28,55): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/cash-register/cash-register.controller.ts(34,51): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.controller.ts(16,48): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.controller.ts(26,46): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.controller.ts(31,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.controller.ts(36,51): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/clients/clients.routes.ts(11,26): error TS2554: Expected 3 arguments, but got 1.
+src/modules/collections/collections.controller.ts(16,52): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/collections/collections.controller.ts(26,56): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(23,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(33,45): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(38,48): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(43,35): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(48,50): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(53,52): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.controller.ts(58,51): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/orders/orders.routes.ts(17,82): error TS2554: Expected 3 arguments, but got 4.
+src/modules/payment-methods/payment-methods.controller.ts(17,48): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payment-methods/payment-methods.controller.ts(22,53): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payment-methods/payment-methods.controller.ts(32,46): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payment-methods/payment-methods.controller.ts(37,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payments/payments.controller.ts(16,52): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/payments/payments.routes.ts(17,84): error TS2554: Expected 3 arguments, but got 4.
+src/modules/payments/payments.service.ts(73,7): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<Invoice>[]): Invoice[]', gave the following error.
+    Object literal may only specify known properties, and 'invoiceNumber' does not exist in type 'DeepPartial<Invoice>[]'.
+src/modules/payments/payments.service.ts(84,5): error TS2740: Type 'Invoice[]' is missing the following properties from type 'Invoice': id, invoiceNumber, subtotal, tax, and 9 more.
+src/modules/print/print.service.ts(49,41): error TS2339: Property 'consecutive' does not exist on type 'Order'.
+src/modules/print/print.service.ts(98,45): error TS2339: Property 'consecutive' does not exist on type 'Invoice'.
+src/modules/print/print.service.ts(101,17): error TS2339: Property 'clientName' does not exist on type 'Invoice'.
+src/modules/print/print.service.ts(101,68): error TS2339: Property 'clientName' does not exist on type 'Invoice'.
+src/modules/products/products.controller.ts(17,49): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/products/products.controller.ts(27,47): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/products/products.controller.ts(32,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/modules/products/products.controller.ts(37,56): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.

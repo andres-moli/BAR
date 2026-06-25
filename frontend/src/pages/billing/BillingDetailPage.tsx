@@ -1,0 +1,274 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Printer, CheckCircle, Plus, Minus } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { ordersService } from '@/services/orders';
+import { billingService } from '@/services/billing';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Modal } from '@/components/ui/Modal';
+import { Select } from '@/components/ui/Select';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Skeleton } from '@/components/ui/LoadingSkeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PaymentPayload } from '@/types';
+import { formatCurrency, formatDateTime } from '@/utils/format';
+import { ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/utils/constants';
+
+export default function BillingDetailPage() {
+  const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const oid = parseInt(orderId || '0');
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    paymentMethodId: '1',
+    monto: 0,
+    propina: 0,
+    referencia: '',
+  });
+
+  const { data: order, isLoading } = useQuery({
+    queryKey: ['order', oid],
+    queryFn: () => ordersService.getById(oid),
+    enabled: !!oid,
+  });
+
+  useEffect(() => {
+    if (order) {
+      setPaymentData((prev) => ({ ...prev, monto: order.total }));
+    }
+  }, [order]);
+
+  const paymentMutation = useMutation({
+    mutationFn: (payload: PaymentPayload) => billingService.processPayment(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['order', oid] });
+      queryClient.invalidateQueries({ queryKey: ['billing'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['tables'] });
+      toast.success('Pago procesado exitosamente');
+      setShowPaymentModal(false);
+    },
+    onError: () => toast.error('Error al procesar el pago'),
+  });
+
+  const printMutation = useMutation({
+    mutationFn: () => billingService.printInvoice(oid),
+    onSuccess: () => toast.success('Imprimiendo...'),
+  });
+
+  const generateInvoiceMutation = useMutation({
+    mutationFn: () => billingService.generateInvoice(oid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['order', oid] });
+      toast.success('Factura generada');
+    },
+    onError: () => toast.error('Error al generar factura'),
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: (estado: string) => ordersService.updateStatus(oid, estado as import('@/types').OrderStatus),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['order', oid] });
+      toast.success('Estado actualizado');
+    },
+    onError: () => toast.error('Error al actualizar estado'),
+  });
+
+  const handleProcessPayment = () => {
+    if (paymentData.monto <= 0) {
+      toast.error('El monto debe ser mayor a 0');
+      return;
+    }
+    paymentMutation.mutate({
+      pedido_id: oid,
+      paymentMethodId: paymentData.paymentMethodId,
+      monto: paymentData.monto,
+      propina: paymentData.propina,
+      referencia: paymentData.referencia || undefined,
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <EmptyState
+        title="Pedido no encontrado"
+        action={<Button onClick={() => navigate('/billing')} icon={<ArrowLeft className="w-4 h-4" />}>Volver</Button>}
+      />
+    );
+  }
+
+  const isFacturada = order.estado === 'facturada';
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/billing')}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Facturación #{order.id}</h1>
+            <p className="text-dark-400 text-sm">Mesa {order.mesa_numero || order.mesa_id} &middot; {formatDateTime(order.created_at)}</p>
+          </div>
+          <StatusBadge status={order.estado} label={ORDER_STATUS_LABELS[order.estado]} size="md" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <Card>
+            <h3 className="text-lg font-semibold text-white mb-4">Productos</h3>
+            <div className="space-y-2">
+              {order.items?.map((item) => (
+                <div key={item.id} className="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <span className="text-dark-400 text-sm w-8 text-center font-mono">{item.cantidad}x</span>
+                    <div>
+                      <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                      <p className="text-xs text-dark-400">{formatCurrency(item.precio_unitario)} c/u</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold text-white">{formatCurrency(item.subtotal)}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card>
+            <h3 className="text-lg font-semibold text-white mb-4">Resumen</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-dark-400">Subtotal</span>
+                <span className="text-white">{formatCurrency(order.total)}</span>
+              </div>
+              {order.propina > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-dark-400">Propina</span>
+                  <span className="text-white">{formatCurrency(order.propina)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-bold pt-2 border-t border-dark-700">
+                <span className="text-white">Total</span>
+                <span className="text-primary-400">{formatCurrency(order.total + order.propina)}</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <Card>
+            <h3 className="text-lg font-semibold text-white mb-4">Acciones</h3>
+            <div className="space-y-3">
+              {!isFacturada && (
+                <>
+                  <Button className="w-full" size="lg" onClick={() => setShowPaymentModal(true)}>
+                    <CheckCircle className="w-4 h-4" />
+                    Procesar Pago
+                  </Button>
+                  <Button variant="secondary" className="w-full" onClick={() => updateStatusMutation.mutate('entregada')}>
+                    Marcar como Entregada
+                  </Button>
+                </>
+              )}
+              {isFacturada && (
+                <>
+                  <Button variant="secondary" className="w-full" icon={<Printer className="w-4 h-4" />} onClick={() => printMutation.mutate()}>
+                    Imprimir Factura
+                  </Button>
+                  <Button variant="secondary" className="w-full" icon={<Printer className="w-4 h-4" />} onClick={() => generateInvoiceMutation.mutate()}>
+                    Regenerar Factura
+                  </Button>
+                </>
+              )}
+            </div>
+          </Card>
+
+          {order.metodo_pago && (
+            <Card>
+              <h3 className="text-sm font-medium text-dark-400 mb-2">Método de Pago</h3>
+              <p className="text-white font-semibold">{PAYMENT_METHOD_LABELS[order.metodo_pago] || order.metodo_pago}</p>
+            </Card>
+          )}
+
+          {order.cliente_nombre && (
+            <Card>
+              <h3 className="text-sm font-medium text-dark-400 mb-2">Cliente</h3>
+              <p className="text-white font-semibold">{order.cliente_nombre}</p>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      <Modal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        title={`Procesar Pago - Pedido #${order.id}`}
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowPaymentModal(false)}>Cancelar</Button>
+            <Button onClick={handleProcessPayment} loading={paymentMutation.isPending}>
+              <CheckCircle className="w-4 h-4" />
+              Procesar Pago
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="bg-dark-700/50 rounded-lg p-4 text-center">
+            <p className="text-sm text-dark-400 mb-1">Total a Cobrar</p>
+            <p className="text-3xl font-bold text-primary-400">{formatCurrency(order.total)}</p>
+          </div>
+
+          <Select
+            label="Método de Pago"
+            value={paymentData.paymentMethodId}
+            onChange={(e) => setPaymentData({ ...paymentData, paymentMethodId: e.target.value })}
+            options={[
+              { value: '1', label: 'Efectivo' },
+              { value: '2', label: 'Tarjeta' },
+              { value: '3', label: 'Transferencia' },
+              { value: '4', label: 'Nequi' },
+              { value: '5', label: 'Bancolombia' },
+            ]}
+          />
+
+          <Input
+            label="Monto"
+            type="number"
+            value={paymentData.monto}
+            onChange={(e) => setPaymentData({ ...paymentData, monto: parseFloat(e.target.value) || 0 })}
+          />
+
+          <Input
+            label="Propina"
+            type="number"
+            value={paymentData.propina || ''}
+            onChange={(e) => setPaymentData({ ...paymentData, propina: parseFloat(e.target.value) || 0 })}
+          />
+
+          <Input
+            label="Referencia (opcional)"
+            placeholder="Número de referencia"
+            value={paymentData.referencia}
+            onChange={(e) => setPaymentData({ ...paymentData, referencia: e.target.value })}
+          />
+        </div>
+      </Modal>
+    </div>
+  );
+}
