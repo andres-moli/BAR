@@ -6,7 +6,7 @@ import { formatCurrency, formatDateTime } from './format';
 export async function printOrderReceipt(orderOrId: Order | number): Promise<void> {
   const order = typeof orderOrId === 'number' ? await ordersService.getById(orderOrId) : orderOrId;
 
-  let settings = { nombre_restaurante: 'Restaurante', direccion: '', telefono: '', nit: '', moneda_simbolo: '$' };
+  let settings = { nombre_restaurante: 'Pal Dm Boutique', direccion: 'Barrio p-5 Tr 15 8-44', telefono: '3117211581', nit: '', moneda_simbolo: '$' };
   try {
     const s = await settingsService.get();
     settings = { ...settings, ...s };
@@ -29,6 +29,8 @@ export async function printOrderReceipt(orderOrId: Order | number): Promise<void
   const subtotal = order.items.reduce((s, i) => s + i.subtotal, 0);
   const propina = Number(order.propina) || 0;
 
+  const logoUrl = `${window.location.origin}/logo-bar.png`;
+
   const receiptHtml = `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><title>Pedido #${order.id}</title>
@@ -36,6 +38,8 @@ export async function printOrderReceipt(orderOrId: Order | number): Promise<void
   @page { margin: 0; size: 80mm auto; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font:11px/1.3 'Courier New',Courier,monospace; width:72mm; padding:2mm 3mm; color:#000; }
+  .logo { text-align:center; margin-bottom:1mm; }
+  .logo img { max-width:50mm; max-height:15mm; object-fit:contain; }
   h1 { font-size:16px; text-align:center; margin-bottom:1mm; }
   .info { margin:2mm 0; }
   .info td { padding:0.5mm 0; }
@@ -52,8 +56,9 @@ export async function printOrderReceipt(orderOrId: Order | number): Promise<void
 </style>
 </head>
 <body>
+  <div class="logo"><img src="${logoUrl}" alt="Logo" /></div>
   <h1>${settings.nombre_restaurante}</h1>
-  <div class="center">${[settings.direccion, settings.telefono, `NIT: ${settings.nit}`].filter(Boolean).join('<br>')}</div>
+  <div class="center">${[settings.direccion, settings.telefono].filter(Boolean).join('<br>')}</div>
   <hr>
   <table class="info">
     <tr><td>Pedido #${order.id}</td><td>${formatDateTime(order.created_at)}</td></tr>
@@ -65,7 +70,6 @@ export async function printOrderReceipt(orderOrId: Order | number): Promise<void
   <table class="items">${itemsRows}</table>
   <hr>
   <table class="totals">
-    <tr><td>Subtotal</td><td>${formatCurrency(subtotal)}</td></tr>
     ${propina > 0 ? `<tr><td>Propina</td><td>${formatCurrency(propina)}</td></tr>` : ''}
     <tr class="gt"><td>TOTAL</td><td>${formatCurrency(order.total)}</td></tr>
     ${order.metodo_pago ? `<tr><td>Método de pago</td><td>${order.metodo_pago}</td></tr>` : ''}

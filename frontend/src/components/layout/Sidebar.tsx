@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Store,
   Tags,
   Landmark,
   Wallet,
@@ -125,8 +124,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-gray-900 border-r border-gray-800">
       <div className="flex items-center gap-3 px-5 h-16 border-b border-gray-800 flex-shrink-0">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center flex-shrink-0">
-          <Store size={18} className="text-white" />
+        <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
+          <img src="/logo-bar.png" alt="Logo" className="w-full h-full object-contain" />
         </div>
         {sidebarOpen && (
           <div className="overflow-hidden">

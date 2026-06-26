@@ -50,11 +50,11 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-600 shadow-lg shadow-primary-600/30 mb-4">
-            <span className="text-2xl font-bold text-white">DM</span>
+          <div className="w-20 h-20 mx-auto mb-4 overflow-hidden rounded-2xl bg-white/10">
+            <img src="/logo-bar.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-white">Pal DM</h1>
-          <p className="text-dark-400 mt-1">Boutigue Licores</p>
+          <p className="text-dark-400 mt-1">Boutique Licores</p>
         </div>
 
         <div className="glass rounded-2xl p-8 shadow-2xl">
