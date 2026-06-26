@@ -22,8 +22,10 @@ import { Input } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/LoadingSkeleton';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrency, formatDateTime } from '@/utils/format';
 import { ORDER_STATUS_LABELS } from '@/utils/constants';
+import { printOrderReceipt } from '@/utils/print';
+import { handleError } from '@/utils/errorHandler';
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +59,7 @@ export default function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       toast.success('Producto agregado');
     },
-    onError: () => toast.error('Error al agregar producto'),
+    onError: (err) => handleError(err, 'Error al agregar producto'),
   });
 
   const removeItemMutation = useMutation({
@@ -66,7 +68,7 @@ export default function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       toast.success('Producto eliminado');
     },
-    onError: () => toast.error('Error al eliminar producto'),
+    onError: (err) => handleError(err, 'Error al eliminar producto'),
   });
 
   const updateItemMutation = useMutation({
@@ -75,7 +77,7 @@ export default function OrderDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
     },
-    onError: () => toast.error('Error al actualizar producto'),
+    onError: (err) => handleError(err, 'Error al actualizar producto'),
   });
 
   const statusMutation = useMutation({
@@ -84,7 +86,7 @@ export default function OrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       toast.success('Estado actualizado');
     },
-    onError: () => toast.error('Error al actualizar estado'),
+    onError: (err) => handleError(err, 'Error al actualizar estado'),
   });
 
   const products = productsData?.data || [];
@@ -215,9 +217,10 @@ export default function OrderDetailPage() {
           {(!order.items || order.items.length === 0) ? (
             <p className="text-sm text-dark-400 text-center py-8">No hay productos en este pedido</p>
           ) : (
-            order.items.map((item) => (
+            order.items.map((item, index) => (
               <div key={item.id} className="flex items-center gap-3 bg-dark-700/50 rounded-lg p-3">
                 <div className="flex-1 min-w-0">
+                  <p className="text-slate-300 font-sans text-sm">{index + 1}</p>
                   <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
                   <p className="text-xs text-dark-400">{formatCurrency(item.precio_unitario)} c/u</p>
                   {item.notas && <p className="text-xs text-dark-500 mt-0.5">Nota: {item.notas}</p>}
@@ -259,6 +262,26 @@ export default function OrderDetailPage() {
           )}
         </div>
 
+        {order.pagos && order.pagos.length > 0 && (
+          <div className="p-4 border-t border-dark-700">
+            <h3 className="text-sm font-semibold text-white mb-3">Pagos Realizados</h3>
+            <div className="space-y-2">
+              {order.pagos.map((p) => (
+                <div key={p.id} className="flex items-center justify-between bg-dark-700/30 rounded-lg p-2.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-white">{p.paymentMethod?.nombre || `Método #${p.paymentMethodId}`}</p>
+                    <p className="text-xs text-dark-400">
+                      {p.paymentMethod?.account?.nombre || p.paymentMethod?.account?.name || '—'} &middot; {formatDateTime(p.created_at)}
+                    </p>
+                    {p.referencia && <p className="text-xs text-dark-500">Ref: {p.referencia}</p>}
+                  </div>
+                  <span className="text-sm font-semibold text-green-400 ml-3">{formatCurrency(p.monto)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="p-4 border-t border-dark-700 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-dark-400">Subtotal</span>
@@ -277,7 +300,7 @@ export default function OrderDetailPage() {
 
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" className="flex-1" icon={<Printer className="w-4 h-4" />}
-              onClick={() => ordersService.print(order.id)}>
+              onClick={() => printOrderReceipt(order)}>
               Imprimir
             </Button>
             {order.estado !== 'facturada' && order.estado !== 'cancelada' && (

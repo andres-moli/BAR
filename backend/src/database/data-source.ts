@@ -7,6 +7,7 @@ import { Category } from '../modules/categories/categories.entity';
 import { Product } from '../modules/products/products.entity';
 import { Order } from '../modules/orders/orders.entity';
 import { OrderItem } from '../modules/orders/order-item.entity';
+import { SubOrder } from '../modules/orders/sub-order.entity';
 import { Payment } from '../modules/payments/payments.entity';
 import { Invoice } from '../modules/payments/invoice.entity';
 import { Client } from '../modules/clients/clients.entity';
@@ -28,7 +29,7 @@ export const AppDataSource = new DataSource({
   synchronize: true,
   logging: config.nodeEnv === 'development',
   entities: [
-    User, TableEntity, Category, Product, Order, OrderItem,
+    User, TableEntity, Category, Product, Order, OrderItem, SubOrder,
     Payment, Invoice, Client, CollectionAccount, CollectionPayment,
     Movement, Account, PaymentMethod, CashRegister, CashMovement,
   ],

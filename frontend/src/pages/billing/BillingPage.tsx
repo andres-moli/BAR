@@ -12,6 +12,8 @@ import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { Order } from '@/types';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import { ORDER_STATUS_LABELS } from '@/utils/constants';
+import { printOrderReceipt } from '@/utils/print';
+import { handleError } from '@/utils/errorHandler';
 
 export default function BillingPage() {
   const navigate = useNavigate();
@@ -35,9 +37,9 @@ export default function BillingPage() {
   });
 
   const printMutation = useMutation({
-    mutationFn: (orderId: number) => billingService.printInvoice(orderId),
-    onSuccess: () => toast.success('Imprimiendo factura...'),
-    onError: () => toast.error('Error al imprimir'),
+    mutationFn: (orderId: number) => printOrderReceipt(orderId),
+    onSuccess: () => toast.success('Imprimiendo...'),
+    onError: (err) => handleError(err, 'Error al imprimir'),
   });
 
   if (isLoading) {

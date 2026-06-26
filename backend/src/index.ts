@@ -18,6 +18,7 @@ import { registerTableRoutes } from './modules/tables/tables.routes';
 import { registerCategoryRoutes } from './modules/categories/categories.routes';
 import { registerProductRoutes } from './modules/products/products.routes';
 import { registerOrderRoutes } from './modules/orders/orders.routes';
+import { registerSubOrderRoutes } from './modules/orders/sub-orders.routes';
 import { registerPaymentRoutes } from './modules/payments/payments.routes';
 import { registerClientRoutes } from './modules/clients/clients.routes';
 import { registerCollectionRoutes } from './modules/collections/collections.routes';
@@ -31,7 +32,9 @@ import { registerInventarioRoutes } from './modules/inventario/inventario.routes
 const app = express();
 
 app.use(helmet());
-app.use(cors(config.cors));
+app.use(cors({
+  origin: '*'
+}));
 app.use(morgan(config.nodeEnv === 'development' ? 'dev' : 'combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -44,7 +47,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, error: { message: 'Too many requests, please try again later.', code: 'RateLimitError' } },
 });
-app.use(limiter);
+// app.use(limiter);
 
 const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -79,6 +82,7 @@ registerTableRoutes(v1);
 registerCategoryRoutes(v1);
 registerProductRoutes(v1);
 registerOrderRoutes(v1);
+registerSubOrderRoutes(v1);
 registerPaymentRoutes(v1);
 registerClientRoutes(v1);
 registerCollectionRoutes(v1);

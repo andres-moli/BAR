@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/LoadingSkeleton';
 import { AppSettings } from '@/types';
+import { handleError } from '@/utils/errorHandler';
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -47,7 +48,7 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       toast.success('Configuración guardada exitosamente');
     },
-    onError: () => toast.error('Error al guardar la configuración'),
+    onError: (err) => handleError(err, 'Error al guardar la configuración'),
   });
 
   if (isLoading) {

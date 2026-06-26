@@ -34,8 +34,9 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     label: 'Dashboard',
-    path: '/dashboard',
+    path: '/',
     icon: <LayoutDashboard size={20} />,
+    roles: ['admin', 'cajero'],
   },
   {
     label: 'Mesas',
@@ -46,17 +47,26 @@ const navItems: NavItem[] = [
     label: 'Productos',
     path: '/products',
     icon: <Package size={20} />,
+    roles: ['admin'],
   },
   {
     label: 'Inventario',
     path: '/inventory',
     icon: <Archive size={20} />,
+    roles: ['admin'],
   },
   {
     label: 'Órdenes',
     path: '/orders',
     icon: <ClipboardList size={20} />,
+    roles: ['admin', 'cajero'],
   },
+  // {
+  //   label: 'Sub-órdenes',
+  //   path: '/sub-orders',
+  //   icon: <ClipboardList size={20} />,
+  //   roles: ['admin'],
+  // },
   {
     label: 'Facturación',
     path: '/billing',
@@ -67,13 +77,13 @@ const navItems: NavItem[] = [
     label: 'Ctas. de Cobro',
     path: '/invoices',
     icon: <FileText size={20} />,
-    roles: ['admin', 'cajero'],
+    roles: ['admin'],
   },
   {
     label: 'Clientes',
     path: '/clients',
     icon: <Users size={20} />,
-    roles: ['admin', 'cajero'],
+    roles: ['admin'],
   },
   {
     label: 'Usuarios',
@@ -85,7 +95,7 @@ const navItems: NavItem[] = [
     label: 'Reportes',
     path: '/reports',
     icon: <BarChart3 size={20} />,
-    roles: ['admin', 'cajero'],
+    roles: ['admin'],
   },
   { label: 'Caja', path: '/cash-register', icon: <Calculator size={20} />, roles: ['admin', 'cajero'] },
   { label: 'Categorías', path: '/categories', icon: <Tags size={20} />, roles: ['admin'] },
@@ -106,7 +116,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => 
   const visibleItems = navItems.filter(
     (item) => !item.roles || item.roles.some((r) => hasRole(r))
   );
-
   const handleNavClick = () => {
     if (mobile && onClose) {
       onClose();
@@ -121,8 +130,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => 
         </div>
         {sidebarOpen && (
           <div className="overflow-hidden">
-            <h1 className="text-base font-bold text-white leading-tight">BAR POS</h1>
-            <p className="text-[10px] text-gray-500 leading-tight">Sistema de Gestión</p>
+            <h1 className="text-base font-bold text-white leading-tight">PAL DM</h1>
+            <p className="text-[10px] text-gray-500 leading-tight">Boutigue Licores</p>
           </div>
         )}
       </div>

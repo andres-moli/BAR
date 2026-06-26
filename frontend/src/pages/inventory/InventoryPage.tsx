@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/format';
+import { handleError } from '@/utils/errorHandler';
 
 export default function InventoryPage() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function InventoryPage() {
       setMovementQty(1);
       setMovementDesc('');
     },
-    onError: () => toast.error('Error al registrar movimiento'),
+    onError: (err) => handleError(err, 'Error al registrar movimiento'),
   });
 
   const lowStockCount = (products || []).filter((p) => p.stock <= 5).length;

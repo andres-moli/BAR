@@ -3,6 +3,10 @@ import { AppDataSource } from '../../database/data-source';
 import { Payment } from './payments.entity';
 import { Order } from '../orders/orders.entity';
 import { Invoice } from './invoice.entity';
+import { TableEntity } from '../tables/tables.entity';
+import { CashRegister } from '../cash-register/cash-register.entity';
+import { CashMovement } from '../cash-register/cash-movement.entity';
+import { PaymentMethod } from '../payment-methods/payment-methods.entity';
 import { PaymentsService } from './payments.service';
 import { PaymentController } from './payments.controller';
 import { authenticate, validate } from '../../shared/middleware';
@@ -13,7 +17,11 @@ export function registerPaymentRoutes(router: Router): void {
   const paymentRepo = AppDataSource.getRepository(Payment);
   const invoiceRepo = AppDataSource.getRepository(Invoice);
   const orderRepo = AppDataSource.getRepository(Order);
-  const paymentsService = new PaymentsService(paymentRepo, invoiceRepo, orderRepo);
+  const tableRepo = AppDataSource.getRepository(TableEntity);
+  const cashRegisterRepo = AppDataSource.getRepository(CashRegister);
+  const cashMovementRepo = AppDataSource.getRepository(CashMovement);
+  const paymentMethodRepo = AppDataSource.getRepository(PaymentMethod);
+  const paymentsService = new PaymentsService(paymentRepo, invoiceRepo, orderRepo, tableRepo, cashRegisterRepo, cashMovementRepo, paymentMethodRepo);
   const paymentsController = new PaymentController(paymentsService);
 
   subrouter.get('/pendientes', authenticate, paymentsController.getPending);

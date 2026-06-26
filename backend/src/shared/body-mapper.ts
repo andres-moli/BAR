@@ -34,12 +34,6 @@ const ENUM_VALUE_MAP: Record<string, Record<string, string>> = {
     ocupada: 'OCCUPIED',
     reservada: 'RESERVED',
     inactiva: 'INACTIVE',
-  },
-  estado: {
-    disponible: 'AVAILABLE',
-    ocupada: 'OCCUPIED',
-    reservada: 'RESERVED',
-    inactiva: 'INACTIVE',
     activa: 'OPEN',
     en_preparacion: 'IN_PROGRESS',
     lista: 'COMPLETED',

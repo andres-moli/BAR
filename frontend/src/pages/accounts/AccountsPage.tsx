@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Account, AccountType } from '@/types';
 import { ACCOUNT_TYPE_LABELS, ACCOUNT_TYPE_COLORS } from '@/utils/constants';
+import { handleError } from '@/utils/errorHandler';
 
 export default function AccountsPage() {
   const queryClient = useQueryClient();
@@ -41,7 +42,7 @@ export default function AccountsPage() {
       toast.success('Cuenta creada');
       closeModal();
     },
-    onError: () => toast.error('Error al crear cuenta'),
+    onError: (err) => handleError(err, 'Error al crear cuenta'),
   });
 
   const updateMutation = useMutation({
@@ -58,7 +59,7 @@ export default function AccountsPage() {
       toast.success('Cuenta actualizada');
       closeModal();
     },
-    onError: () => toast.error('Error al actualizar cuenta'),
+    onError: (err) => handleError(err, 'Error al actualizar cuenta'),
   });
 
   const deleteMutation = useMutation({
@@ -68,7 +69,7 @@ export default function AccountsPage() {
       toast.success('Cuenta eliminada');
       setDeleteItem(null);
     },
-    onError: () => toast.error('Error al eliminar cuenta'),
+    onError: (err) => handleError(err, 'Error al eliminar cuenta'),
   });
 
   const openCreate = () => {

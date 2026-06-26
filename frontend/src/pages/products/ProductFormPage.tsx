@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/LoadingSkeleton';
+import { handleError } from '@/utils/errorHandler';
 
 const productSchema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido'),
@@ -91,7 +92,7 @@ export default function ProductFormPage() {
       toast.success('Producto creado exitosamente');
       navigate('/products');
     },
-    onError: () => toast.error('Error al crear producto'),
+    onError: (err) => handleError(err, 'Error al crear producto'),
   });
 
   const updateMutation = useMutation({
@@ -101,7 +102,7 @@ export default function ProductFormPage() {
       toast.success('Producto actualizado');
       navigate('/products');
     },
-    onError: () => toast.error('Error al actualizar producto'),
+    onError: (err) => handleError(err, 'Error al actualizar producto'),
   });
 
   const onSubmit = async (data: ProductForm) => {

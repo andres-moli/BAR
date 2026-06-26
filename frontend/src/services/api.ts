@@ -1,7 +1,8 @@
 import axios from 'axios';
+const host = window.location.hostname;
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/v1',
+  baseURL: `http://${host}:3000/api/v1`,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -25,9 +26,14 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+    if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('barpos-auth');
       window.location.href = '/login';
+    }
+    const backendMsg = error.response?.data?.error?.message;
+    if (backendMsg) {
+      error.message = backendMsg;
     }
     return Promise.reject(error);
   }

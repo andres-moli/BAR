@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency } from '@/utils/format';
+import { handleError } from '@/utils/errorHandler';
 
 export default function ProductMovementsPage() {
   const { productId } = useParams<{ productId: string }>();
@@ -41,7 +42,7 @@ export default function ProductMovementsPage() {
       toast.success('Stock ajustado');
       setAdjustModal(false);
     },
-    onError: () => toast.error('Error al ajustar stock'),
+    onError: (err) => handleError(err, 'Error al ajustar stock'),
   });
 
   const getMovementIcon = (tipo: string) => {

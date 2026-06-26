@@ -22,7 +22,7 @@ export class CashRegisterService {
     return this.repo.save(register);
   }
 
-  async close(id: string, userId: string): Promise<CashRegister> {
+  async close(id: string, userId: string, notes?: string): Promise<CashRegister> {
     const register = await this.repo.findOne({ where: { id } });
     if (!register) throw new NotFoundError('Cash register not found');
     if (register.status === CashRegisterStatus.CLOSED) throw new ConflictError('Cash register is already closed');
@@ -33,6 +33,7 @@ export class CashRegisterService {
     register.closedBy = userId;
     register.closedAt = new Date();
     register.status = CashRegisterStatus.CLOSED;
+    if (notes) register.notes = notes;
     return this.repo.save(register);
   }
 
@@ -65,11 +66,11 @@ export class CashRegisterService {
       where: { cashRegisterId: registerId },
       relations: ['account'],
     });
-    const grouped: Record<string, { accountName: string; totalAmount: number }> = {};
+    const grouped: Record<string, { accountName: string; totalAmount: number; type: string }> = {};
     for (const m of movements) {
       const key = m.accountId;
       if (!grouped[key]) {
-        grouped[key] = { accountName: m.account?.name || 'Unknown', totalAmount: 0 };
+        grouped[key] = { accountName: m.account?.name || 'Unknown', totalAmount: 0, type: m.account?.type || 'OTHER' };
       }
       grouped[key].totalAmount += Number(m.amount);
     }
@@ -77,6 +78,7 @@ export class CashRegisterService {
       accountId,
       accountName: data.accountName,
       totalAmount: data.totalAmount,
+      type: data.type,
     }));
   }
 }

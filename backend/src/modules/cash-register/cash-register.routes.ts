@@ -15,8 +15,8 @@ export function registerCashRegisterRoutes(router: Router): void {
   const service = new CashRegisterService(repo, movementRepo);
   const controller = new CashRegisterController(service);
 
-  subrouter.post('/abrir', authenticate, authorize('ADMIN'), validate(openCashRegisterSchema), controller.open);
-  subrouter.post('/cerrar', authenticate, authorize('ADMIN'), validate(closeCashRegisterSchema), controller.close);
+  subrouter.post('/abrir', authenticate, validate(openCashRegisterSchema), controller.open);
+  subrouter.post('/cerrar', authenticate, validate(closeCashRegisterSchema), controller.close);
   subrouter.get('/actual', authenticate, controller.getCurrent);
   subrouter.get('/:id/movimientos', authenticate, controller.getMovements);
   subrouter.get('/:id/resumen', authenticate, controller.getSummary);

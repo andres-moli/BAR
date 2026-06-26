@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { Client } from '@/types';
 import { formatCurrency } from '@/utils/format';
+import { handleError } from '@/utils/errorHandler';
 
 export default function ClientsPage() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export default function ClientsPage() {
       toast.success('Cliente creado exitosamente');
       closeModal();
     },
-    onError: () => toast.error('Error al crear cliente'),
+    onError: (err) => handleError(err, 'Error al crear cliente'),
   });
 
   const updateMutation = useMutation({
@@ -47,7 +48,7 @@ export default function ClientsPage() {
       toast.success('Cliente actualizado');
       closeModal();
     },
-    onError: () => toast.error('Error al actualizar cliente'),
+    onError: (err) => handleError(err, 'Error al actualizar cliente'),
   });
 
   const deleteMutation = useMutation({
@@ -57,7 +58,7 @@ export default function ClientsPage() {
       toast.success('Cliente eliminado');
       setDeleteClient(null);
     },
-    onError: () => toast.error('Error al eliminar cliente'),
+    onError: (err) => handleError(err, 'Error al eliminar cliente'),
   });
 
   const openCreate = () => {

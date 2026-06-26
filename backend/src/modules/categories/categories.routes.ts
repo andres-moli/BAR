@@ -3,7 +3,7 @@ import { AppDataSource } from '../../database/data-source';
 import { Category } from './categories.entity';
 import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
-import { authenticate, authorize } from '../../shared/middleware';
+import { authenticate } from '../../shared/middleware';
 import { validate } from '../../shared/middleware';
 import { createCategorySchema, updateCategorySchema } from './categories.validator';
 
@@ -15,9 +15,9 @@ export function registerCategoryRoutes(router: Router): void {
 
   subrouter.get('/', authenticate, categoriesController.getAll);
   subrouter.get('/:id', authenticate, categoriesController.getById);
-  subrouter.post('/', authenticate, authorize('ADMIN'), validate(createCategorySchema), categoriesController.create);
-  subrouter.put('/:id', authenticate, authorize('ADMIN'), validate(updateCategorySchema), categoriesController.update);
-  subrouter.delete('/:id', authenticate, authorize('ADMIN'), categoriesController.delete);
+  subrouter.post('/', authenticate, validate(createCategorySchema), categoriesController.create);
+  subrouter.put('/:id', authenticate, validate(updateCategorySchema), categoriesController.update);
+  subrouter.delete('/:id', authenticate, categoriesController.delete);
 
   router.use('/categorias', subrouter);
 }

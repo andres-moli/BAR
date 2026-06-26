@@ -21,6 +21,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Order } from '@/types';
 import { formatCurrency, formatDateTime } from '@/utils/format';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, POLLING_INTERVAL, TABLE_STATUS_LABELS } from '@/utils/constants';
+import { printOrderReceipt } from '@/utils/print';
+import { handleError } from '@/utils/errorHandler';
 
 export default function OrdersPage() {
   const navigate = useNavigate();
@@ -57,7 +59,7 @@ export default function OrdersPage() {
       toast.success('Pedido cancelado');
       setCancelOrderId(null);
     },
-    onError: () => toast.error('Error al cancelar pedido'),
+    onError: (err) => handleError(err, 'Error al cancelar pedido'),
   });
 
   const changeTableMutation = useMutation({
@@ -70,7 +72,7 @@ export default function OrdersPage() {
       setChangeTableOrder(null);
       setNewTableId('');
     },
-    onError: () => toast.error('Error al cambiar mesa'),
+    onError: (err) => handleError(err, 'Error al cambiar mesa'),
   });
 
   const handleSort = (column: string) => {
@@ -168,7 +170,7 @@ export default function OrdersPage() {
             </Button>
             {order.estado !== 'cancelada' && order.estado !== 'facturada' && (
               <>
-                <Button variant="ghost" size="sm" onClick={() => ordersService.print(order.id)}>
+                <Button variant="ghost" size="sm" onClick={() => printOrderReceipt(order)}>
                   <Printer className="w-4 h-4" />
                 </Button>
                 <Button

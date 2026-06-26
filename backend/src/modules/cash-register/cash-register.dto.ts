@@ -37,4 +37,5 @@ export interface CashRegisterSummaryDto {
   accountId: string;
   accountName: string;
   totalAmount: number;
+  type: string;
 }

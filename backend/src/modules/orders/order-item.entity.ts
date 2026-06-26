@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Order } from './orders.entity';
 import { Product } from '../products/products.entity';
+import { SubOrder } from './sub-order.entity';
 
 @Entity('order_items')
 export class OrderItem {
@@ -13,6 +14,8 @@ export class OrderItem {
   @ManyToOne(() => Order, o => o.items) @JoinColumn({ name: 'order_id' }) order: Order;
   @Column({ type: 'varchar', name: 'product_id' }) productId: string;
   @ManyToOne(() => Product) @JoinColumn({ name: 'product_id' }) product: Product;
+  @Column({ type: 'varchar', name: 'sub_order_id', nullable: true }) subOrderId: string;
+  @ManyToOne(() => SubOrder) @JoinColumn({ name: 'sub_order_id' }) subOrder: SubOrder;
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;
 
@@ -26,6 +29,7 @@ export class OrderItem {
       precio_unitario: this.unitPrice,
       subtotal: this.subtotal,
       notas: this.notes,
+      sub_orden_id: this.subOrderId,
       created_at: this.createdAt,
     };
   }

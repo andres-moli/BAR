@@ -5,18 +5,17 @@ import { Plus, Edit2, Trash2, Eye, EyeOff, Coffee } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productsService } from '@/services/products';
 import { categoriesService } from '@/services/categories';
-import { useAuth } from '@/contexts/AuthContext';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/format';
+import { handleError } from '@/utils/errorHandler';
 
 export default function ProductsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { isAdmin } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<number | undefined>();
@@ -38,7 +37,7 @@ export default function ProductsPage() {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Estado actualizado');
     },
-    onError: () => toast.error('Error al actualizar estado'),
+    onError: (err) => handleError(err, 'Error al actualizar estado'),
   });
 
   const deleteMutation = useMutation({
@@ -48,7 +47,7 @@ export default function ProductsPage() {
       toast.success('Producto eliminado');
       setDeleteProduct(null);
     },
-    onError: () => toast.error('Error al eliminar producto'),
+    onError: (err) => handleError(err, 'Error al eliminar producto'),
   });
 
   const columns: Column<Product>[] = [
@@ -77,11 +76,9 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-bold text-white">Productos</h1>
           <p className="text-dark-400 text-sm mt-1">{data?.total || 0} productos registrados</p>
         </div>
-        {isAdmin && (
-          <Button icon={<Plus className="w-4 h-4" />} onClick={() => navigate('/products/new')}>
-            Nuevo Producto
-          </Button>
-        )}
+        <Button icon={<Plus className="w-4 h-4" />} onClick={() => navigate('/products/new')}>
+          Nuevo Producto
+        </Button>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -120,19 +117,15 @@ export default function ProductsPage() {
         onPageChange={setPage}
         actions={(product) => (
           <>
-            {isAdmin && (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => navigate(`/products/${product.id}/edit`)}>
-                  <Edit2 className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => toggleMutation.mutate(product.id)}>
-                  {product.activo ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-                <Button variant="ghost" size="sm" className="!text-red-400 hover:!bg-red-500/10" onClick={() => setDeleteProduct(product)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </>
-            )}
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/products/${product.id}/edit`)}>
+              <Edit2 className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => toggleMutation.mutate(product.id)}>
+              {product.activo ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </Button>
+            <Button variant="ghost" size="sm" className="!text-red-400 hover:!bg-red-500/10" onClick={() => setDeleteProduct(product)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </>
         )}
       />

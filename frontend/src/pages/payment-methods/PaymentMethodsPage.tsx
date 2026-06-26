@@ -12,6 +12,7 @@ import { Select } from '@/components/ui/Select';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PaymentMethod } from '@/types';
+import { handleError } from '@/utils/errorHandler';
 
 export default function PaymentMethodsPage() {
   const queryClient = useQueryClient();
@@ -45,7 +46,7 @@ export default function PaymentMethodsPage() {
       toast.success('Método de pago creado');
       closeModal();
     },
-    onError: () => toast.error('Error al crear método de pago'),
+    onError: (err) => handleError(err, 'Error al crear método de pago'),
   });
 
   const updateMutation = useMutation({
@@ -61,7 +62,7 @@ export default function PaymentMethodsPage() {
       toast.success('Método de pago actualizado');
       closeModal();
     },
-    onError: () => toast.error('Error al actualizar método de pago'),
+    onError: (err) => handleError(err, 'Error al actualizar método de pago'),
   });
 
   const deleteMutation = useMutation({
@@ -71,7 +72,7 @@ export default function PaymentMethodsPage() {
       toast.success('Método de pago eliminado');
       setDeleteItem(null);
     },
-    onError: () => toast.error('Error al eliminar método de pago'),
+    onError: (err) => handleError(err, 'Error al eliminar método de pago'),
   });
 
   const openCreate = () => {

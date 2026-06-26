@@ -13,12 +13,14 @@ import {
   SplitSquareHorizontal,
   Move,
   ArrowRight,
+  Check,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tablesService } from '@/services/tables';
 import { productsService } from '@/services/products';
 import { categoriesService } from '@/services/categories';
 import { ordersService } from '@/services/orders';
+import { subOrdersService } from '@/services/subOrders';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -28,8 +30,11 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/LoadingSkeleton';
 import { Product, OrderItem, OrderStatus, Order } from '@/types';
+import Swal from 'sweetalert2';
+import { printOrderReceipt } from '@/utils/print';
 import { formatCurrency } from '@/utils/format';
 import { TABLE_STATUS_LABELS, ORDER_STATUS_LABELS } from '@/utils/constants';
+import { handleError } from '@/utils/errorHandler';
 
 const ORDER_STATUS_ACTIONS: { value: string; label: string; color: string }[] = [
   { value: 'en_preparacion', label: 'En Preparación', color: 'bg-yellow-600 hover:bg-yellow-700' },
@@ -98,7 +103,7 @@ export default function TableDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['tables'] });
       toast.success('Pedido creado');
     },
-    onError: () => toast.error('Error al crear pedido'),
+    onError: (err) => handleError(err, 'Error al crear pedido'),
   });
 
   const addItemMutation = useMutation({
@@ -106,17 +111,20 @@ export default function TableDetailPage() {
       ordersService.addItem(activeOrder!.id, { producto_id, cantidad, notas }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', 'by-table', tableId] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Producto agregado');
     },
-    onError: () => toast.error('Error al agregar producto'),
+    onError: (err) => handleError(err, 'Error al agregar producto'),
   });
 
   const removeItemMutation = useMutation({
     mutationFn: (itemId: number) => ordersService.removeItem(activeOrder!.id, itemId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', 'by-table', tableId] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Producto eliminado');
     },
-    onError: () => toast.error('Error al eliminar producto'),
+    onError: (err) => handleError(err, 'Error al eliminar producto'),
   });
 
   const updateItemMutation = useMutation({
@@ -124,8 +132,9 @@ export default function TableDetailPage() {
       ordersService.updateItem(activeOrder!.id, itemId, { cantidad }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders', 'by-table', tableId] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     },
-    onError: () => toast.error('Error al actualizar producto'),
+    onError: (err) => handleError(err, 'Error al actualizar producto'),
   });
 
   const updateStatusMutation = useMutation({
@@ -135,7 +144,7 @@ export default function TableDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['tables'] });
       toast.success('Estado actualizado');
     },
-    onError: () => toast.error('Error al actualizar estado'),
+    onError: (err) => handleError(err, 'Error al actualizar estado'),
   });
 
   const changeTableMutation = useMutation({
@@ -147,7 +156,7 @@ export default function TableDetailPage() {
       setShowChangeTableModal(false);
       setNewTableId('');
     },
-    onError: () => toast.error('Error al cambiar mesa'),
+    onError: (err) => handleError(err, 'Error al cambiar mesa'),
   });
 
   const splitOrderMutation = useMutation({
@@ -163,8 +172,20 @@ export default function TableDetailPage() {
       toast.success('Pedido dividido');
       setShowSplitModal(false);
     },
-    onError: () => toast.error('Error al dividir pedido'),
+    onError: (err) => handleError(err, 'Error al dividir pedido'),
   });
+
+  const createSubOrderMutation = useMutation({
+    mutationFn: () => subOrdersService.create(activeOrder!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', 'by-table', tableId] });
+      toast.success('Sub-orden creada');
+    },
+    onError: (err) => handleError(err, 'Error al crear sub-orden'),
+  });
+
+  const ungroupedItems = activeOrder?.items.filter((i) => !i.sub_orden_id) || [];
+  const subOrders = activeOrder?.sub_ordenes || [];
 
   const handleProductClick = (product: Product) => {
     if (!activeOrder) {
@@ -184,10 +205,32 @@ export default function TableDetailPage() {
 
   const confirmAddWithNote = () => {
     if (pendingProduct && activeOrder) {
-      addItemMutation.mutate({
-        producto_id: pendingProduct.id,
-        cantidad: 1,
-        notas: itemNote || undefined,
+      const stock = pendingProduct.stock;
+      if (stock !== undefined && stock <= 0) {
+        Swal.fire({ icon: 'warning', title: 'Sin stock', text: `${pendingProduct.nombre} no tiene stock disponible`, background: '#1e293b', color: '#f1f5f9' });
+        setShowNotesModal(false);
+        setPendingProduct(null);
+        setItemNote('');
+        return;
+      }
+      Swal.fire({
+        title: 'Agregar producto',
+        html: `${pendingProduct.nombre}<br><span class="text-sm text-dark-400">Stock disponible: ${stock !== undefined ? stock : 'N/A'}</span>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, agregar',
+        cancelButtonText: 'Cancelar',
+        background: '#1e293b',
+        color: '#f1f5f9',
+        confirmButtonColor: '#f59e0b',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          addItemMutation.mutate({
+            producto_id: pendingProduct.id,
+            cantidad: 1,
+            notas: itemNote || undefined,
+          });
+        }
       });
     }
     setShowNotesModal(false);
@@ -284,6 +327,9 @@ export default function TableDetailPage() {
               </div>
               <p className="text-sm font-medium text-white line-clamp-1">{product.nombre}</p>
               <p className="text-sm font-bold text-primary-400 mt-1">{formatCurrency(product.precio)}</p>
+              <span className={`text-xs mt-1 ${product.stock > 5 ? 'text-dark-400' : product.stock > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {product.stock > 0 ? `Stock: ${product.stock}` : 'Sin stock'}
+              </span>
             </Card>
           ))}
         </div>
@@ -304,42 +350,118 @@ export default function TableDetailPage() {
 
         {activeOrder ? (
           <>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {activeOrder.items.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 bg-dark-700/50 rounded-lg p-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
-                    <p className="text-xs text-dark-400">{formatCurrency(item.precio_unitario)} c/u</p>
-                    {item.notas && <p className="text-xs text-dark-500 mt-0.5">Nota: {item.notas}</p>}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        if (item.cantidad <= 1) {
-                          removeItemMutation.mutate(item.id);
-                        } else {
-                          updateItemMutation.mutate({ itemId: item.id, cantidad: item.cantidad - 1 });
-                        }
-                      }}
-                      className="p-1 rounded-md text-dark-400 hover:text-white hover:bg-dark-600 transition-colors"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-sm font-medium text-white w-6 text-center">{item.cantidad}</span>
-                    <button
-                      onClick={() => updateItemMutation.mutate({ itemId: item.id, cantidad: item.cantidad + 1 })}
-                      className="p-1 rounded-md text-dark-400 hover:text-white hover:bg-dark-600 transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <p className="text-sm font-semibold text-white w-20 text-right">{formatCurrency(item.subtotal)}</p>
-                  <button
-                    onClick={() => removeItemMutation.mutate(item.id)}
-                    className="p-1 rounded-md text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {ungroupedItems.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Sin Confirmar</p>
+                  {ungroupedItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 bg-dark-700/50 rounded-lg p-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                        <p className="text-xs text-dark-400">{formatCurrency(item.precio_unitario)} c/u</p>
+                        {item.notas && <p className="text-xs text-dark-500 mt-0.5">Nota: {item.notas}</p>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            Swal.fire({
+                              title: 'Reducir cantidad',
+                              text: `¿Quitar 1 unidad de ${item.producto_nombre || 'este producto'}?`,
+                              icon: 'question',
+                              showCancelButton: true,
+                              confirmButtonText: 'Sí',
+                              cancelButtonText: 'Cancelar',
+                              background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#f59e0b',
+                            }).then((r) => {
+                              if (r.isConfirmed) {
+                                if (item.cantidad <= 1) {
+                                  removeItemMutation.mutate(item.id);
+                                } else {
+                                  updateItemMutation.mutate({ itemId: item.id, cantidad: item.cantidad - 1 });
+                                }
+                              }
+                            });
+                          }}
+                          className="p-1 rounded-md text-dark-400 hover:text-white hover:bg-dark-600 transition-colors"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-sm font-medium text-white w-6 text-center">{item.cantidad}</span>
+                        <button
+                          onClick={() => {
+                            Swal.fire({
+                              title: 'Aumentar cantidad',
+                              text: `¿Agregar 1 unidad más de ${item.producto_nombre || 'este producto'}?`,
+                              icon: 'question',
+                              showCancelButton: true,
+                              confirmButtonText: 'Sí',
+                              cancelButtonText: 'Cancelar',
+                              background: '#1e293b', color: '#f1f5f9', confirmButtonColor: '#f59e0b',
+                            }).then((r) => {
+                              if (r.isConfirmed) {
+                                updateItemMutation.mutate({ itemId: item.id, cantidad: item.cantidad + 1 });
+                              }
+                            });
+                          }}
+                          className="p-1 rounded-md text-dark-400 hover:text-white hover:bg-dark-600 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-sm font-semibold text-white w-20 text-right">{formatCurrency(item.subtotal)}</p>
+                      <button
+                        onClick={() => {
+                          Swal.fire({
+                            title: 'Eliminar producto',
+                            html: `¿Eliminar <strong>${item.producto_nombre || 'este producto'}</strong> del pedido?<br><span class="text-sm text-dark-400">Se devolverá al inventario</span>`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, eliminar',
+                            cancelButtonText: 'Cancelar',
+                            confirmButtonColor: '#ef4444',
+                            background: '#1e293b', color: '#f1f5f9',
+                          }).then((r) => {
+                            if (r.isConfirmed) {
+                              removeItemMutation.mutate(item.id);
+                            }
+                          });
+                        }}
+                        className="p-1 rounded-md text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    icon={<Check className="w-4 h-4" />}
+                    onClick={() => createSubOrderMutation.mutate()}
+                    loading={createSubOrderMutation.isPending}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                    Confirmar Suborden
+                  </Button>
+                </div>
+              )}
+
+              {subOrders.map((so) => (
+                <div key={so.id} className="space-y-1.5">
+                  <p className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+                    Suborden #{so.id.slice(-4)} · {so.creado_por}
+                    <span className="ml-2 text-dark-400">
+                      {so.estado === 'PENDIENTE' ? 'Pendiente' : so.estado === 'CONFIRMADO' ? 'Confirmado' : so.estado === 'ENTREGADO' ? 'Entregado' : so.estado}
+                    </span>
+                  </p>
+                  {activeOrder.items.filter((i) => i.sub_orden_id === so.id).map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 bg-dark-800/50 rounded-lg p-2.5 border border-dark-600">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-dark-200">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                        {item.notas && <p className="text-xs text-dark-500">Nota: {item.notas}</p>}
+                      </div>
+                      <span className="text-sm text-dark-300">{item.cantidad}x</span>
+                      <p className="text-sm font-semibold text-dark-200 w-20 text-right">{formatCurrency(item.subtotal)}</p>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
@@ -376,7 +498,7 @@ export default function TableDetailPage() {
                   variant="secondary"
                   size="sm"
                   icon={<Printer className="w-4 h-4" />}
-                  onClick={() => ordersService.print(activeOrder.id)}
+                  onClick={() => printOrderReceipt(activeOrder)}
                 >
                   Imprimir
                 </Button>

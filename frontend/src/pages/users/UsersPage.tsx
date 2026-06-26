@@ -12,6 +12,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { User as UserType, UserRole } from '@/types';
 import { formatDateTime } from '@/utils/format';
 import { USER_ROLE_LABELS, USER_ROLE_COLORS } from '@/utils/constants';
+import { handleError } from '@/utils/errorHandler';
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
@@ -34,7 +35,7 @@ export default function UsersPage() {
       toast.success('Usuario creado exitosamente');
       closeModal();
     },
-    onError: () => toast.error('Error al crear usuario'),
+    onError: (err) => handleError(err, 'Error al crear usuario'),
   });
 
   const updateMutation = useMutation({
@@ -44,7 +45,7 @@ export default function UsersPage() {
       toast.success('Usuario actualizado');
       closeModal();
     },
-    onError: () => toast.error('Error al actualizar usuario'),
+    onError: (err) => handleError(err, 'Error al actualizar usuario'),
   });
 
   const toggleMutation = useMutation({
@@ -53,7 +54,7 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Estado actualizado');
     },
-    onError: () => toast.error('Error al actualizar estado'),
+    onError: (err) => handleError(err, 'Error al actualizar estado'),
   });
 
   const openCreate = () => {

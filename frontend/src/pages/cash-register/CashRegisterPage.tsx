@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DollarSign, ArrowUpRight, ArrowDownRight, History, X, Printer } from 'lucide-react';
+import { DollarSign, ArrowUpRight, ArrowDownRight, History, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cashRegisterService } from '@/services/cashRegister';
 import { Button } from '@/components/ui/Button';
@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/Input';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/LoadingSkeleton';
 import { CashRegister, CashMovement, CashRegisterSummary } from '@/types';
-import { formatCurrency, formatDateTime, formatTimeAgo as formatTime } from '@/utils/format';
+import { formatCurrency, formatTimeAgo as formatTime } from '@/utils/format';
 import { CASH_REGISTER_STATUS_LABELS, CASH_REGISTER_STATUS_COLORS, ACCOUNT_TYPE_LABELS } from '@/utils/constants';
+import { handleError } from '@/utils/errorHandler';
 
 export default function CashRegisterPage() {
   const queryClient = useQueryClient();
@@ -49,11 +50,11 @@ export default function CashRegisterPage() {
       setInitialAmount(0);
       setOpenNotes('');
     },
-    onError: () => toast.error('Error al abrir caja'),
+    onError: (err) => handleError(err, 'Error al abrir caja'),
   });
 
   const closeMutation = useMutation({
-    mutationFn: () => cashRegisterService.close({ finalAmount, notes: closeNotes || undefined }),
+    mutationFn: () => cashRegisterService.close({ finalAmount: 0, notes: closeNotes || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cash-register'] });
       toast.success('Caja cerrada exitosamente');
@@ -61,7 +62,7 @@ export default function CashRegisterPage() {
       setFinalAmount(0);
       setCloseNotes('');
     },
-    onError: () => toast.error('Error al cerrar caja'),
+    onError: (err) => handleError(err, 'Error al cerrar caja'),
   });
 
   const handlePrintReport = () => {
@@ -255,14 +256,14 @@ export default function CashRegisterPage() {
                 ))}
               </div>
             )}
+            <div className="border-t border-dark-600 pt-2 mt-2">
+              <div className="flex justify-between text-sm font-bold">
+                <span className="text-white">Total Final</span>
+                <span className="text-green-400">{formatCurrency((currentRegister?.initialAmount || 0) + (summary || []).reduce((a, s) => a + s.totalAmount, 0))}</span>
+              </div>
+            </div>
           </div>
-          <Input
-            label="Monto Final"
-            type="number"
-            value={finalAmount || ''}
-            onChange={(e) => setFinalAmount(parseFloat(e.target.value) || 0)}
-            placeholder="0"
-          />
+          <p className="text-sm text-dark-400">El monto final se calculará automáticamente al cerrar la caja.</p>
           <Input
             label="Notas (opcional)"
             value={closeNotes}

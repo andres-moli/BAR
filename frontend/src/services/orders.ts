@@ -60,4 +60,9 @@ export const ordersService = {
   print: async (orderId: number): Promise<void> => {
     await api.post(`/pedidos/${orderId}/imprimir`);
   },
+
+  getPendingApproval: async (): Promise<Order[]> => {
+    const { data } = await api.get<Order[]>('/pedidos/pending-approval');
+    return data;
+  },
 };

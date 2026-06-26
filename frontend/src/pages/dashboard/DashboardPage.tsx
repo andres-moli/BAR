@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import {
   DollarSign,
   ClipboardList,
@@ -24,19 +25,39 @@ import {
   Legend,
 } from 'recharts';
 import { reportsService } from '@/services/reports';
+import { ordersService } from '@/services/orders';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CardSkeleton, ChartSkeleton } from '@/components/ui/LoadingSkeleton';
 import { formatCurrency, formatDate } from '@/utils/format';
+import { ORDER_STATUS_LABELS } from '@/utils/constants';
 import { PAYMENT_METHOD_LABELS } from '@/utils/constants';
+import { useAuthStore } from '@/store/authStore';
 
 const PIE_COLORS = ['#22c55e', '#3b82f6', '#a855f7', '#f59e0b', '#ef4444'];
 const CHART_COLORS = ['#22c55e', '#3b82f6', '#a855f7', '#f59e0b'];
 
 export default function DashboardPage() {
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.rol === 'admin';
+
   const { data: stats, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['dashboard'],
     queryFn: reportsService.getDashboard,
+  });
+
+  const { data: pendingApproval = [] } = useQuery({
+    queryKey: ['orders', 'pending-approval'],
+    queryFn: ordersService.getPendingApproval,
+    enabled: isAdmin,
+    refetchInterval: 30000,
+  });
+
+  const { data: recentCompleted } = useQuery({
+    queryKey: ['orders', 'recent-completed'],
+    queryFn: () => ordersService.getAll({ estado: 'facturada', limit: 5, sortBy: 'updated_at', sortOrder: 'desc' }),
+    refetchInterval: 60000,
   });
 
   if (isLoading) {
@@ -229,6 +250,60 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {isAdmin && pendingApproval.length > 0 && (
+        <Card>
+          <h3 className="text-lg font-semibold text-white mb-4">Modificaciones Pendientes de Aprobación</h3>
+          <div className="space-y-3">
+            {pendingApproval.map((o) => (
+              <div key={o.id} className="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-primary-400 font-bold">#{o.id}</span>
+                  <span className="text-sm text-dark-300">
+                    Mesa {o.mesa_numero || o.mesa_id} &middot; {o.usuario_nombre || `Mesero #${o.usuario_id}`}
+                  </span>
+                  <span className="text-xs text-dark-400">{o.items?.reduce((a, b) => a + b.cantidad, 0) || 0} productos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await ordersService.updateStatus(o.id, 'entregada' as any);
+                        toast.success('Pedido #' + o.id + ' marcado como entregado');
+                      } catch {
+                        toast.error('Error al aprobar');
+                      }
+                    }}
+                  >
+                    Aprobar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {recentCompleted && recentCompleted.data.length > 0 && (
+        <Card>
+          <h3 className="text-lg font-semibold text-white mb-4">Últimos Pedidos Facturados</h3>
+          <div className="space-y-3">
+            {recentCompleted.data.map((o) => (
+              <div key={o.id} className="flex items-center justify-between py-2 border-b border-dark-700 last:border-0">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-primary-400 font-bold">#{o.id}</span>
+                  <span className="text-sm text-dark-300">
+                    Mesa {o.mesa_numero || o.mesa_id} &middot; {o.usuario_nombre || `Mesero #${o.usuario_id}`}
+                  </span>
+                  <span className="text-xs text-dark-400">{o.items?.reduce((a, b) => a + b.cantidad, 0) || 0} items</span>
+                </div>
+                <span className="text-sm font-semibold text-white">{formatCurrency(o.total)}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

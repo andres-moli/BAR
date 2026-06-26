@@ -2,16 +2,20 @@ import { Repository } from 'typeorm';
 import { Order, OrderStatus } from './orders.entity';
 import { OrderItem } from './order-item.entity';
 import { Product } from '../products/products.entity';
+import { Movement } from '../products/movement.entity';
+import { TableEntity, TableStatus } from '../tables/tables.entity';
 import { NotFoundError, ConflictError } from '../../shared/errors';
 import { CreateOrderDto, AddItemDto, UpdateItemDto, SplitOrderDto } from './orders.dto';
 
-const TAX_RATE = 0.19;
+const TAX_RATE = 0;
 
 export class OrdersService {
   constructor(
     private orderRepo: Repository<Order>,
     private itemRepo: Repository<OrderItem>,
     private productRepo: Repository<Product>,
+    private tableRepo: Repository<TableEntity>,
+    private movementRepo: Repository<Movement>,
   ) {}
 
   async findAll(filters?: { status?: string; tableId?: string; userId?: string; clientId?: string; startDate?: Date; endDate?: Date }): Promise<Order[]> {
@@ -21,6 +25,8 @@ export class OrdersService {
       .leftJoinAndSelect('order.client', 'client')
       .leftJoinAndSelect('order.items', 'items')
       .leftJoinAndSelect('items.product', 'product')
+      .leftJoinAndSelect('order.subOrders', 'subOrders')
+      .leftJoinAndSelect('subOrders.creator', 'subOrderCreator')
       .orderBy('order.createdAt', 'DESC');
 
     if (filters?.status) qb.andWhere('order.status = :status', { status: filters.status });
@@ -30,19 +36,60 @@ export class OrdersService {
     if (filters?.startDate) qb.andWhere('order.createdAt >= :startDate', { startDate: filters.startDate });
     if (filters?.endDate) qb.andWhere('order.createdAt <= :endDate', { endDate: filters.endDate });
 
-    return qb.getMany();
+    const all = await qb.getMany();
+    return this.filterLatestVersions(all);
+  }
+
+  private filterLatestVersions(orders: Order[]): Order[] {
+    const map = new Map<string, Order>();
+    for (const o of orders) {
+      const key = o.versionGroupId || o.id;
+      const existing = map.get(key);
+      if (!existing || (o.version || 1) > (existing.version || 1)) {
+        map.set(key, o);
+      }
+    }
+    return Array.from(map.values());
+  }
+
+  private async findLatestInGroup(versionGroupId: string): Promise<Order | null> {
+    return this.orderRepo.findOne({
+      where: { versionGroupId },
+      relations: ['table', 'user', 'client', 'items', 'items.product', 'subOrders', 'subOrders.creator', 'payments', 'payments.paymentMethod', 'payments.paymentMethod.account', 'invoice'],
+      order: { version: 'DESC' },
+    });
   }
 
   async findById(id: string): Promise<Order> {
     const order = await this.orderRepo.findOne({
       where: { id },
-      relations: ['table', 'user', 'client', 'items', 'items.product', 'payments', 'invoice'],
+      relations: ['table', 'user', 'client', 'items', 'items.product', 'subOrders', 'subOrders.creator', 'payments', 'payments.paymentMethod', 'payments.paymentMethod.account', 'invoice'],
     });
     if (!order) throw new NotFoundError('Order not found');
+    if (order.versionGroupId) {
+      const latest = await this.findLatestInGroup(order.versionGroupId);
+      if (latest && latest.id !== id) return latest;
+    }
     return order;
   }
 
+  async getVersions(orderId: string): Promise<Order[]> {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['table', 'user', 'client'],
+    });
+    if (!order) throw new NotFoundError('Order not found');
+    if (!order.versionGroupId) return [order];
+
+    return this.orderRepo.find({
+      where: { versionGroupId: order.versionGroupId },
+      relations: ['items', 'items.product', 'user'],
+      order: { version: 'ASC' },
+    });
+  }
+
   async create(dto: CreateOrderDto): Promise<Order> {
+    const versionGroupId = `vg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const order = this.orderRepo.create({
       tableId: dto.tableId,
       clientId: dto.clientId,
@@ -53,25 +100,76 @@ export class OrdersService {
       total: 0,
       discount: 0,
       status: OrderStatus.OPEN,
+      versionGroupId,
+      version: 1,
     });
-    return this.orderRepo.save(order);
+    const saved = await this.orderRepo.save(order);
+
+    if (dto.tableId) {
+      await this.tableRepo.update(dto.tableId, { status: TableStatus.OCCUPIED });
+    }
+
+    return saved;
   }
 
-  async addItem(orderId: string, dto: AddItemDto): Promise<OrderItem> {
+  private async cloneOrder(order: Order): Promise<Order> {
+    const maxVersion = await this.orderRepo
+      .createQueryBuilder('order')
+      .select('MAX(order.version)', 'maxVer')
+      .where('order.versionGroupId = :vg', { vg: order.versionGroupId })
+      .getRawOne();
+
+    const newOrder = this.orderRepo.create({
+      tableId: order.tableId,
+      userId: order.userId,
+      clientId: order.clientId,
+      notes: order.notes,
+      status: order.status,
+      subtotal: order.subtotal,
+      tax: order.tax,
+      total: order.total,
+      discount: order.discount,
+      versionGroupId: order.versionGroupId,
+      version: (maxVersion?.maxVer || order.version || 1) + 1,
+    });
+    await this.orderRepo.save(newOrder);
+
+    const items = await this.itemRepo.find({ where: { orderId: order.id } });
+    for (const item of items) {
+      const newItem = this.itemRepo.create({
+        orderId: newOrder.id,
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal: item.subtotal,
+        notes: item.notes,
+      });
+      await this.itemRepo.save(newItem);
+    }
+
+    return this.orderRepo.findOne({
+      where: { id: newOrder.id },
+      relations: ['items', 'items.product'],
+    }) as Promise<Order>;
+  }
+
+  async addItem(orderId: string, dto: AddItemDto): Promise<{ item: OrderItem; newOrderId: string }> {
     const order = await this.findById(orderId);
-    if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.CANCELLED) {
-      throw new ConflictError('Cannot modify a completed or cancelled order');
+    if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.PAID || order.status === OrderStatus.CANCELLED) {
+      throw new ConflictError('Cannot modify a completed or paid or cancelled order');
     }
 
     const product = await this.productRepo.findOne({ where: { id: dto.productId } });
     if (!product) throw new NotFoundError('Product not found');
+
+    const newOrder = await this.cloneOrder(order);
 
     const quantity = dto.quantity;
     const unitPrice = Number(product.price);
     const subtotal = Number((unitPrice * quantity).toFixed(2));
 
     const item = this.itemRepo.create({
-      orderId,
+      orderId: newOrder.id,
       productId: dto.productId,
       quantity,
       unitPrice,
@@ -80,38 +178,73 @@ export class OrdersService {
     });
     await this.itemRepo.save(item);
 
-    await this.recalculateTotals(orderId);
-    return item;
+    await this.adjustStock(product, -quantity, `Agregado a pedido #${orderId}`, order.userId);
+    await this.recalculateTotals(newOrder.id);
+    return { item, newOrderId: newOrder.id };
   }
 
-  async updateItem(itemId: string, dto: UpdateItemDto): Promise<OrderItem> {
-    const item = await this.itemRepo.findOne({ where: { id: itemId }, relations: ['order'] });
-    if (!item) throw new NotFoundError('Order item not found');
-    if (item.order.status === OrderStatus.COMPLETED || item.order.status === OrderStatus.CANCELLED) {
-      throw new ConflictError('Cannot modify a completed or cancelled order');
+  async updateItem(itemId: string, dto: UpdateItemDto): Promise<{ item: OrderItem; newOrderId: string }> {
+    const currentItem = await this.itemRepo.findOne({ where: { id: itemId }, relations: ['order'] });
+    if (!currentItem) throw new NotFoundError('Order item not found');
+    if (currentItem.order.status === OrderStatus.COMPLETED || currentItem.order.status === OrderStatus.PAID || currentItem.order.status === OrderStatus.CANCELLED) {
+      throw new ConflictError('Cannot modify a completed or paid or cancelled order');
     }
 
+    const order = await this.findById(currentItem.orderId);
+    const newOrder = await this.cloneOrder(order);
+
+    const newItems = await this.itemRepo.find({ where: { orderId: newOrder.id } });
+    const targetItem = newItems.find(i => Number(i.productId) === Number(currentItem.productId) && i.quantity === currentItem.quantity);
+    const itemToUpdate = targetItem || (await this.itemRepo.findOne({ where: { orderId: newOrder.id, productId: currentItem.productId } }));
+
+    if (!itemToUpdate) throw new NotFoundError('Could not find matching item in new version');
+
+    const oldQty = Number(itemToUpdate.quantity);
     if (dto.quantity !== undefined) {
-      item.quantity = dto.quantity;
-      item.subtotal = Number((Number(item.unitPrice) * dto.quantity).toFixed(2));
+      itemToUpdate.quantity = dto.quantity;
+      itemToUpdate.subtotal = Number((Number(itemToUpdate.unitPrice) * dto.quantity).toFixed(2));
     }
-    if (dto.notes !== undefined) item.notes = dto.notes;
+    if (dto.notes !== undefined) itemToUpdate.notes = dto.notes;
 
-    await this.itemRepo.save(item);
-    await this.recalculateTotals(item.orderId);
-    return item;
+    await this.itemRepo.save(itemToUpdate);
+    await this.recalculateTotals(newOrder.id);
+
+    const diff = Number(itemToUpdate.quantity) - oldQty;
+    if (diff !== 0) {
+      const product = await this.productRepo.findOne({ where: { id: itemToUpdate.productId } });
+      if (product) {
+        await this.adjustStock(product, -diff, `Cantidad ajustada en pedido #${order.id} (${oldQty} → ${itemToUpdate.quantity})`, order.userId);
+      }
+    }
+
+    const savedItem = await this.itemRepo.findOne({ where: { id: itemToUpdate.id }, relations: ['order'] });
+    return { item: savedItem || itemToUpdate, newOrderId: newOrder.id };
   }
 
-  async removeItem(itemId: string): Promise<void> {
-    const item = await this.itemRepo.findOne({ where: { id: itemId }, relations: ['order'] });
-    if (!item) throw new NotFoundError('Order item not found');
-    if (item.order.status === OrderStatus.COMPLETED || item.order.status === OrderStatus.CANCELLED) {
-      throw new ConflictError('Cannot modify a completed or cancelled order');
+  async removeItem(itemId: string): Promise<{ newOrderId: string }> {
+    const currentItem = await this.itemRepo.findOne({ where: { id: itemId }, relations: ['order', 'product'] });
+    if (!currentItem) throw new NotFoundError('Order item not found');
+    if (currentItem.order.status === OrderStatus.COMPLETED || currentItem.order.status === OrderStatus.PAID || currentItem.order.status === OrderStatus.CANCELLED) {
+      throw new ConflictError('Cannot modify a completed or paid or cancelled order');
     }
 
-    const orderId = item.orderId;
-    await this.itemRepo.remove(item);
-    await this.recalculateTotals(orderId);
+    const order = await this.findById(currentItem.orderId);
+    const newOrder = await this.cloneOrder(order);
+
+    const newItems = await this.itemRepo.find({ where: { orderId: newOrder.id } });
+    const targetItem = newItems.find(i => Number(i.productId) === Number(currentItem.productId) && i.quantity === currentItem.quantity);
+    const itemToRemove = targetItem || (await this.itemRepo.findOne({ where: { orderId: newOrder.id, productId: currentItem.productId } }));
+
+    if (itemToRemove) {
+      await this.itemRepo.remove(itemToRemove);
+      const product = await this.productRepo.findOne({ where: { id: itemToRemove.productId } });
+      if (product) {
+        await this.adjustStock(product, Number(itemToRemove.quantity), `Eliminado de pedido #${order.id}`, order.userId);
+      }
+    }
+
+    await this.recalculateTotals(newOrder.id);
+    return { newOrderId: newOrder.id };
   }
 
   async changeTable(orderId: string, tableId: string): Promise<Order> {
@@ -122,10 +255,11 @@ export class OrdersService {
 
   async splitOrder(orderId: string, dto: SplitOrderDto): Promise<Order> {
     const sourceOrder = await this.findById(orderId);
-    if (sourceOrder.status === OrderStatus.COMPLETED || sourceOrder.status === OrderStatus.CANCELLED) {
-      throw new ConflictError('Cannot split a completed or cancelled order');
+    if (sourceOrder.status === OrderStatus.COMPLETED || sourceOrder.status === OrderStatus.PAID || sourceOrder.status === OrderStatus.CANCELLED) {
+      throw new ConflictError('Cannot split a completed or paid or cancelled order');
     }
 
+    const versionGroupId = `vg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const newOrder = this.orderRepo.create({
       tableId: dto.tableId || sourceOrder.tableId,
       userId: sourceOrder.userId,
@@ -136,6 +270,8 @@ export class OrdersService {
       tax: 0,
       total: 0,
       discount: 0,
+      versionGroupId,
+      version: 1,
     });
     await this.orderRepo.save(newOrder);
 
@@ -180,9 +316,21 @@ export class OrdersService {
   }
 
   async findByTable(tableId: string): Promise<Order[]> {
-    return this.orderRepo.find({
+    const allOrders = await this.orderRepo.find({
       where: { tableId },
       relations: ['items', 'items.product', 'user', 'client', 'payments'],
+      order: { createdAt: 'DESC' },
+    });
+    return this.filterLatestVersions(allOrders);
+  }
+
+  async findPendingApproval(): Promise<Order[]> {
+    return this.orderRepo.find({
+      where: [
+        { version: 2, status: OrderStatus.OPEN },
+        { version: 2, status: OrderStatus.IN_PROGRESS },
+      ],
+      relations: ['table', 'user', 'client', 'items', 'items.product'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -198,6 +346,21 @@ export class OrdersService {
     order.status = OrderStatus.CANCELLED;
     order.closedAt = new Date();
     return this.orderRepo.save(order);
+  }
+
+  private async adjustStock(product: Product, delta: number, description: string, userId: string): Promise<void> {
+    if (delta === 0) return;
+    product.stock = Math.max(0, Number(product.stock) + delta);
+    await this.productRepo.save(product);
+
+    const movement = this.movementRepo.create({
+      type: delta < 0 ? 'EXIT' : 'ENTRY',
+      quantity: Math.abs(delta),
+      description,
+      productId: product.id,
+      userId,
+    });
+    await this.movementRepo.save(movement);
   }
 
   private async recalculateTotals(orderId: string): Promise<void> {

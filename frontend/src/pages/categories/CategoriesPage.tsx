@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Category } from '@/types';
+import { handleError } from '@/utils/errorHandler';
 
 export default function CategoriesPage() {
   const queryClient = useQueryClient();
@@ -40,7 +41,7 @@ export default function CategoriesPage() {
       toast.success('Categoría creada');
       closeModal();
     },
-    onError: () => toast.error('Error al crear categoría'),
+    onError: (err) => handleError(err, 'Error al crear categoría'),
   });
 
   const updateMutation = useMutation({
@@ -58,7 +59,7 @@ export default function CategoriesPage() {
       toast.success('Categoría actualizada');
       closeModal();
     },
-    onError: () => toast.error('Error al actualizar categoría'),
+    onError: (err) => handleError(err, 'Error al actualizar categoría'),
   });
 
   const deleteMutation = useMutation({
@@ -68,7 +69,7 @@ export default function CategoriesPage() {
       toast.success('Categoría eliminada');
       setDeleteItem(null);
     },
-    onError: () => toast.error('Error al eliminar categoría'),
+    onError: (err) => handleError(err, 'Error al eliminar categoría'),
   });
 
   const openCreate = () => {

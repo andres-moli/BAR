@@ -173,10 +173,6 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
               <span className="text-gray-400">Subtotal</span>
               <span className="text-gray-300">{formatPrice(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">IVA (19%)</span>
-              <span className="text-gray-300">{formatPrice(tax)}</span>
-            </div>
             {discount > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Descuento</span>

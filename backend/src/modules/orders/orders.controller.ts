@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { OrdersService } from './orders.service';
+import { ForbiddenError } from '../../shared/errors';
 
 const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) =>
   (req: Request, res: Response, next: NextFunction) => fn(req, res, next).catch(next);
@@ -33,20 +34,20 @@ export class OrderController {
   });
 
   addItem = wrap(async (req, res) => {
-    await this.service.addItem(req.params.id as string, { ...req.body, userId: req.user!.id });
-    const order = await this.service.findById(req.params.id as string);
+    const result = await this.service.addItem(req.params.id as string, { ...req.body, userId: req.user!.id });
+    const order = await this.service.findById(result.newOrderId);
     res.status(201).json({ success: true, data: order });
   });
 
   updateItem = wrap(async (req, res) => {
-    await this.service.updateItem(req.params.itemId as string, req.body);
-    const order = await this.service.findById(req.params.id as string);
+    const result = await this.service.updateItem(req.params.itemId as string, req.body);
+    const order = await this.service.findById(result.newOrderId);
     res.json({ success: true, data: order });
   });
 
   removeItem = wrap(async (req, res) => {
-    await this.service.removeItem(req.params.itemId as string);
-    const order = await this.service.findById(req.params.id as string);
+    const result = await this.service.removeItem(req.params.itemId as string);
+    const order = await this.service.findById(result.newOrderId);
     res.json({ success: true, data: order });
   });
 
@@ -65,13 +66,26 @@ export class OrderController {
     res.json({ success: true, data: history });
   });
 
+  getVersions = wrap(async (req, res) => {
+    const versions = await this.service.getVersions(req.params.id as string);
+    res.json({ success: true, data: versions });
+  });
+
   getByTable = wrap(async (req, res) => {
     const data = await this.service.findByTable(req.params.mesaId as string);
     res.json({ success: true, data });
   });
 
   updateStatus = wrap(async (req, res) => {
+    if (req.body.status === 'COMPLETED' && req.user?.role !== 'ADMIN') {
+      throw new ForbiddenError('Only admins can mark orders as delivered');
+    }
     const data = await this.service.updateStatus(req.params.id as string, req.body.status);
+    res.json({ success: true, data });
+  });
+
+  getPendingApproval = wrap(async (req, res) => {
+    const data = await this.service.findPendingApproval();
     res.json({ success: true, data });
   });
 

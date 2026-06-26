@@ -110,8 +110,7 @@ export function getStatusText(status: string): string {
 
 export function calculateOrderTotals(items: Array<{ cantidad: number; precio_unitario: number; quantity?: number; unit_price?: number }>) {
   const subtotal = items.reduce((sum, item) => sum + (item.cantidad ?? item.quantity ?? 0) * (item.precio_unitario ?? item.unit_price ?? 0), 0);
-  const tax = Math.round(subtotal * 0.19);
-  return { subtotal, tax };
+  return { subtotal, tax: 0 };
 }
 
 export function calculateDiscountedTotal(

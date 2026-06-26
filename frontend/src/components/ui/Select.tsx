@@ -64,9 +64,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className={`input-base flex items-center justify-between ${
-              error ? 'border-red-500' : ''
-            } ${!selectedOption ? 'text-gray-500' : 'text-gray-100'} ${className}`}
+            className={`w-full bg-dark-800 border border-dark-600 rounded-lg px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 flex items-center justify-between ${
+              error ? '!border-red-500' : ''
+            } ${!selectedOption ? 'text-dark-400' : 'text-white'} ${className}`}
           >
             <span>{selectedOption ? selectedOption.label : placeholder}</span>
             <ChevronDown
@@ -146,18 +146,19 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             value={value}
             onChange={onChange}
-            className={`input-base appearance-none pr-10 ${
-              error ? 'border-red-500' : ''
-            } ${!value ? 'text-gray-500' : ''} ${className}`}
+            className={`w-full bg-dark-800 border border-dark-600 rounded-lg px-4 py-2.5 text-sm text-white placeholder-dark-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 appearance-none pr-10 ${
+              error ? '!border-red-500' : ''
+            } ${!value ? 'text-dark-400' : ''} ${className}`}
+            style={{ colorScheme: 'dark' }}
             {...props}
           >
             {placeholder && (
-              <option value="" disabled>
+              <option value="" disabled className="bg-dark-800 text-dark-400">
                 {placeholder}
               </option>
             )}
             {options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <option key={opt.value} value={opt.value} className="bg-dark-800 text-white">
                 {opt.label}
               </option>
             ))}

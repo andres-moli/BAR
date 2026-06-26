@@ -83,6 +83,31 @@ export interface OrderItem {
   subtotal: number;
   notas: string;
   notes: string;
+  sub_orden_id?: string | null;
+  created_at: string;
+}
+
+export type SubOrderStatus = 'PENDIENTE' | 'CONFIRMADO' | 'ENTREGADO' | 'CANCELADO';
+
+export interface SubOrder {
+  id: string;
+  pedido_id: string;
+  mesa_numero?: number | null;
+  estado: SubOrderStatus;
+  creado_por: string;
+  creado_por_id: string;
+  entregado_por: string | null;
+  created_at: string;
+  delivered_at: string | null;
+  items?: OrderItem[];
+}
+
+export interface PaymentSummary {
+  id: string;
+  monto: number;
+  paymentMethodId: string;
+  paymentMethod?: PaymentMethod;
+  referencia: string | null;
   created_at: string;
 }
 
@@ -96,11 +121,15 @@ export interface Order {
   cliente_nombre?: string;
   estado: OrderStatus;
   items: OrderItem[];
+  sub_ordenes?: SubOrder[];
   total: number;
   metodo_pago: string | null;
   paymentMethodId?: string;
   paymentMethod?: PaymentMethod;
   propina: number;
+  pagos?: PaymentSummary[];
+  totalPagado?: number;
+  pendiente?: number;
   created_at: string;
   updated_at: string;
 }

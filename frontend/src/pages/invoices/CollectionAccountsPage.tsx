@@ -15,6 +15,7 @@ import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { CollectionAccount } from '@/types';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { COLLECTION_STATUS_LABELS } from '@/utils/constants';
+import { handleError } from '@/utils/errorHandler';
 
 export default function CollectionAccountsPage() {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export default function CollectionAccountsPage() {
       setShowCreateModal(false);
       setCreateData({ cliente_id: 0, pedidos: '', fecha_vencimiento: '' });
     },
-    onError: () => toast.error('Error al crear cuenta de cobro'),
+    onError: (err) => handleError(err, 'Error al crear cuenta de cobro'),
   });
 
   const paymentMutation = useMutation({
@@ -78,7 +79,7 @@ export default function CollectionAccountsPage() {
       setSelectedAccount(null);
       setPaymentData({ monto: 0, paymentMethodId: '1', referencia: '' });
     },
-    onError: () => toast.error('Error al registrar pago'),
+    onError: (err) => handleError(err, 'Error al registrar pago'),
   });
 
   const columns: Column<CollectionAccount>[] = [

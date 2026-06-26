@@ -14,7 +14,7 @@ export class CashRegisterController {
 
   close = wrap(async (req, res) => {
     const id = (req.params.id as string) || req.body.cashRegisterId;
-    const register = await this.service.close(id, req.user!.id);
+    const register = await this.service.close(id, req.user!.id, req.body.notes);
     res.json({ success: true, data: register });
   });
 

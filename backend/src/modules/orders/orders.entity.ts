@@ -3,11 +3,12 @@ import { TableEntity } from '../tables/tables.entity';
 import { User } from '../users/users.entity';
 import { Client } from '../clients/clients.entity';
 import { OrderItem } from './order-item.entity';
+import { SubOrder } from './sub-order.entity';
 import { Payment } from '../payments/payments.entity';
 import { Invoice } from '../payments/invoice.entity';
 import { mapOrderStatus } from '../../shared/entity-mapper';
 
-export enum OrderStatus { OPEN = 'OPEN', IN_PROGRESS = 'IN_PROGRESS', COMPLETED = 'COMPLETED', CANCELLED = 'CANCELLED' }
+export enum OrderStatus { OPEN = 'OPEN', IN_PROGRESS = 'IN_PROGRESS', COMPLETED = 'COMPLETED', PAID = 'PAID', CANCELLED = 'CANCELLED' }
 
 @Entity('orders')
 export class Order {
@@ -25,13 +26,19 @@ export class Order {
   @Column({ type: 'varchar', name: 'client_id', nullable: true }) clientId: string;
   @ManyToOne(() => Client) @JoinColumn({ name: 'client_id' }) client: Client;
   @OneToMany(() => OrderItem, oi => oi.order, { cascade: true }) items: OrderItem[];
+  @OneToMany(() => SubOrder, so => so.order) subOrders: SubOrder[];
   @OneToMany(() => Payment, p => p.order) payments: Payment[];
   @OneToOne(() => Invoice, i => i.order) invoice: Invoice;
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;
+  @Column({ type: 'varchar', name: 'version_group_id', nullable: true }) versionGroupId: string;
+  @Column({ type: 'int', default: 1 }) version: number;
   @Column({ type: 'timestamp', name: 'closed_at', nullable: true }) closedAt: Date;
 
   toJSON() {
+    const payments = (this.payments || []).filter(p => p != null);
+    const totalPaid = payments.reduce((s, p) => s + Number(p.amount), 0);
+    const lastPayment = payments[payments.length - 1];
     return {
       id: this.id,
       mesa_id: this.tableId,
@@ -42,10 +49,23 @@ export class Order {
       cliente_nombre: this.client?.name,
       estado: mapOrderStatus(this.status),
       items: this.items,
+      sub_ordenes: this.subOrders,
       total: this.total,
       subtotal: this.subtotal,
+      versionGroupId: this.versionGroupId,
+      version: this.version,
+      pagos: payments.map(p => ({
+        id: p.id,
+        monto: p.amount,
+        paymentMethodId: p.paymentMethodId,
+        paymentMethod: p.paymentMethod,
+        referencia: p.reference,
+        created_at: p.createdAt,
+      })),
+      totalPagado: totalPaid,
+      pendiente: Math.max(0, Number(this.total) - totalPaid),
       propina: 0,
-      metodo_pago: null,
+      metodo_pago: lastPayment?.paymentMethod?.name || null,
       nota: this.notes || null,
       created_at: this.createdAt,
       updated_at: this.updatedAt,

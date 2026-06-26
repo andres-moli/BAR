@@ -37,10 +37,7 @@ export default function LoginPage() {
       await login(data);
       navigate('/', { replace: true });
     } catch (err: unknown) {
-      const msg =
-        err && typeof err === 'object' && 'response' in err
-          ? (err as { response: { data?: { message?: string } } }).response?.data?.message || 'Error al iniciar sesión'
-          : 'Error al iniciar sesión';
+      const msg = err instanceof Error ? err.message : 'Error al iniciar sesión';
       setError(msg);
     } finally {
       setLoading(false);
@@ -54,10 +51,10 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-600 shadow-lg shadow-primary-600/30 mb-4">
-            <span className="text-2xl font-bold text-white">B</span>
+            <span className="text-2xl font-bold text-white">DM</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">BarPOS</h1>
-          <p className="text-dark-400 mt-1">Sistema de Gestión para Bares y Restaurantes</p>
+          <h1 className="text-3xl font-bold text-white">Pal DM</h1>
+          <p className="text-dark-400 mt-1">Boutigue Licores</p>
         </div>
 
         <div className="glass rounded-2xl p-8 shadow-2xl">

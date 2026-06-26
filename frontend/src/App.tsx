@@ -27,6 +27,7 @@ import PaymentMethodsPage from '@/pages/payment-methods/PaymentMethodsPage';
 import CashRegisterPage from '@/pages/cash-register/CashRegisterPage';
 import InventoryPage from '@/pages/inventory/InventoryPage';
 import ProductMovementsPage from '@/pages/inventory/ProductMovementsPage';
+import SubOrdersPage from '@/pages/orders/SubOrdersPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,26 +64,49 @@ function App() {
               <Route path="orders/:id" element={<OrderDetailPage />} />
               <Route path="billing" element={<BillingPage />} />
               <Route path="billing/:orderId" element={<BillingDetailPage />} />
-              <Route path="invoices" element={<CollectionAccountsPage />} />
-              <Route path="invoices/:id" element={<CollectionAccountDetailPage />} />
-              <Route path="clients" element={<ClientsPage />} />
-              <Route path="clients/:id" element={<ClientDetailPage />} />
+              <Route path="invoices" element={
+                <ProtectedRoute roles={['admin']}><CollectionAccountsPage /></ProtectedRoute>
+              } />
+              <Route path="invoices/:id" element={
+                <ProtectedRoute roles={['admin']}><CollectionAccountDetailPage /></ProtectedRoute>
+              } />
+              <Route path="clients" element={
+                <ProtectedRoute roles={['admin']}><ClientsPage /></ProtectedRoute>
+              } />
+              <Route path="clients/:id" element={
+                <ProtectedRoute roles={['admin']}><ClientDetailPage /></ProtectedRoute>
+              } />
               <Route
                 path="users"
                 element={
-                  <ProtectedRoute adminOnly>
+                  <ProtectedRoute roles={['admin']}>
                     <UsersPage />
                   </ProtectedRoute>
                 }
               />
-              <Route path="reports" element={<ReportsPage />} />
+              <Route path="reports" element={
+                <ProtectedRoute roles={['admin']}><ReportsPage /></ProtectedRoute>
+              } />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="categories" element={<CategoriesPage />} />
-              <Route path="accounts" element={<AccountsPage />} />
-              <Route path="payment-methods" element={<PaymentMethodsPage />} />
+              <Route path="categories" element={
+                <ProtectedRoute roles={['admin']}><CategoriesPage /></ProtectedRoute>
+              } />
+              <Route path="accounts" element={
+                <ProtectedRoute roles={['admin']}><AccountsPage /></ProtectedRoute>
+              } />
+              <Route path="payment-methods" element={
+                <ProtectedRoute roles={['admin']}><PaymentMethodsPage /></ProtectedRoute>
+              } />
               <Route path="cash-register" element={<CashRegisterPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="inventory/:productId" element={<ProductMovementsPage />} />
+              <Route path="inventory" element={
+                <ProtectedRoute roles={['admin']}><InventoryPage /></ProtectedRoute>
+              } />
+              <Route path="inventory/:productId" element={
+                <ProtectedRoute roles={['admin']}><ProductMovementsPage /></ProtectedRoute>
+              } />
+              <Route path="sub-orders" element={
+                <ProtectedRoute roles={['admin']}><SubOrdersPage /></ProtectedRoute>
+              } />
             </Route>
           </Routes>
           <Toaster

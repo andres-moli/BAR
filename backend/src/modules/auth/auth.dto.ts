@@ -5,10 +5,5 @@ export interface LoginDto {
 
 export interface AuthResponseDto {
   token: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
+  user: any;
 }

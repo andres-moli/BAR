@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/LoadingSkeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format';
 import { COLLECTION_STATUS_LABELS } from '@/utils/constants';
+import { handleError } from '@/utils/errorHandler';
 
 export default function CollectionAccountDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,7 +56,7 @@ export default function CollectionAccountDetailPage() {
       setShowPaymentModal(false);
       setPaymentData({ monto: 0, paymentMethodId: '1', referencia: '' });
     },
-    onError: () => toast.error('Error al registrar pago'),
+    onError: (err) => handleError(err, 'Error al registrar pago'),
   });
 
   if (isLoading) {
