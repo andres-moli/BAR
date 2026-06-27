@@ -31,4 +31,14 @@ export const reportsService = {
     const { data } = await api.get('/reportes/clientes', { params: filters });
     return data;
   },
+
+  getProfit: async (filters?: { startDate?: string; endDate?: string }): Promise<{ ingresos: number; costo: number; ganancia: number }> => {
+    const { data } = await api.get('/reportes/ganancia', { params: filters });
+    return data;
+  },
+
+  getTopProducts: async (limit = 10, filters?: ReportFilters): Promise<{ id: string; name: string; quantity: number; total: number }[]> => {
+    const { data } = await api.get('/reportes/top-products', { params: { limit, ...filters } });
+    return data;
+  },
 };

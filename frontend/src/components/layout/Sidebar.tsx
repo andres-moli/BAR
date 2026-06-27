@@ -18,6 +18,8 @@ import {
   Landmark,
   Wallet,
   Calculator,
+  Combine,
+  History,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUiStore } from '../../store/uiStore';
@@ -48,6 +50,7 @@ const navItems: NavItem[] = [
     icon: <Package size={20} />,
     roles: ['admin'],
   },
+  { label: 'Combos', path: '/combos', icon: <Combine size={20} />, roles: ['admin'] },
   {
     label: 'Inventario',
     path: '/inventory',
@@ -96,7 +99,8 @@ const navItems: NavItem[] = [
     icon: <BarChart3 size={20} />,
     roles: ['admin'],
   },
-  { label: 'Caja', path: '/cash-register', icon: <Calculator size={20} />, roles: ['admin', 'cajero'] },
+  { label: 'Caja', path: '/cash-register', icon: <Calculator size={20} />, roles: ['admin'] },
+  { label: 'Historial Caja', path: '/cash-register/history', icon: <History size={20} />, roles: ['admin'] },
   { label: 'Categorías', path: '/categories', icon: <Tags size={20} />, roles: ['admin'] },
   { label: 'Cuentas', path: '/accounts', icon: <Landmark size={20} />, roles: ['admin'] },
   { label: 'Métodos de Pago', path: '/payment-methods', icon: <Wallet size={20} />, roles: ['admin'] },

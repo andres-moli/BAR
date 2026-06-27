@@ -36,6 +36,9 @@ export class Product {
   @Column({ type: 'varchar', name: 'image_url', nullable: true })
   imageUrl: string;
 
+  @Column({ type: 'boolean', name: 'show_in_menu', default: true })
+  showInMenu: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
@@ -60,6 +63,7 @@ export class Product {
       activo: this.isActive,
       stock: this.stock,
       imagen: this.imageUrl,
+      mostrar_en_menu: this.showInMenu,
       created_at: this.createdAt,
       updated_at: this.updatedAt,
     };

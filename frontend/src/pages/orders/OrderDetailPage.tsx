@@ -10,10 +10,12 @@ import {
   CreditCard,
   Search,
   Coffee,
+  Combine,
   ShoppingCart,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ordersService } from '@/services/orders';
+import { combosService } from '@/services/combos';
 import { productsService } from '@/services/products';
 import { categoriesService } from '@/services/categories';
 import { Button } from '@/components/ui/Button';
@@ -52,6 +54,11 @@ export default function OrderDetailPage() {
     queryFn: () => categoriesService.getAll(),
   });
 
+  const { data: combos } = useQuery({
+    queryKey: ['combos', 'active'],
+    queryFn: () => combosService.getActive(),
+  });
+
   const addItemMutation = useMutation({
     mutationFn: ({ producto_id, cantidad, notas }: { producto_id: number; cantidad: number; notas?: string }) =>
       ordersService.addItem(orderId, { producto_id, cantidad, notas }),
@@ -60,6 +67,16 @@ export default function OrderDetailPage() {
       toast.success('Producto agregado');
     },
     onError: (err) => handleError(err, 'Error al agregar producto'),
+  });
+
+  const addComboMutation = useMutation({
+    mutationFn: (comboId: string) =>
+      ordersService.addCombo(orderId, { combo_id: comboId, cantidad: 1 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      toast.success('Combo agregado');
+    },
+    onError: (err) => handleError(err, 'Error al agregar combo'),
   });
 
   const removeItemMutation = useMutation({
@@ -93,7 +110,7 @@ export default function OrderDetailPage() {
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || p.categoria_id === selectedCategory;
-    return matchesSearch && matchesCategory && p.activo;
+    return matchesSearch && matchesCategory && p.activo && p.mostrar_en_menu !== false;
   });
 
   const groupedCategories = categories?.filter((c) => c.activo) || [];
@@ -128,7 +145,7 @@ export default function OrderDetailPage() {
           <div>
             <h1 className="text-xl font-bold text-white">Pedido #{order.id}</h1>
             <p className="text-sm text-dark-400">
-              Mesa {order.mesa_numero || order.mesa_id} &middot; {order.usuario_nombre || `Mesero #${order.usuario_id}`}
+              {order.mesa_nombre || `Mesa ${order.mesa_numero || order.mesa_id}`} &middot; {order.usuario_nombre || `Mesero #${order.usuario_id}`}
             </p>
           </div>
           <StatusBadge status={order.estado} label={ORDER_STATUS_LABELS[order.estado]} size="md" />
@@ -170,6 +187,25 @@ export default function OrderDetailPage() {
         )}
 
         <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 content-start">
+          {canAddItems && (combos || []).filter((c) => c.activo).map((combo) => (
+            <Card
+              key={combo.id}
+              hover
+              onClick={() => addComboMutation.mutate(combo.id)}
+              className="flex flex-col items-center text-center p-3 border-2 border-amber-500/20"
+            >
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-2">
+                {combo.imagen ? (
+                  <img src={combo.imagen} alt={combo.nombre} className="w-full h-full object-cover rounded-xl" />
+                ) : (
+                  <Combine className="w-6 h-6 text-amber-400" />
+                )}
+              </div>
+              <p className="text-sm font-medium text-white line-clamp-1">{combo.nombre}</p>
+              <p className="text-sm font-bold text-amber-400 mt-1">{formatCurrency(Number(combo.precio))}</p>
+              <span className="text-xs text-amber-500/70 mt-1">{combo.productos?.length || 0} productos</span>
+            </Card>
+          ))}
           {canAddItems && filteredProducts.map((product) => (
             <Card
               key={product.id}
@@ -221,7 +257,7 @@ export default function OrderDetailPage() {
               <div key={item.id} className="flex items-center gap-3 bg-dark-700/50 rounded-lg p-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-slate-300 font-sans text-sm">{index + 1}</p>
-                  <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                  <p className="text-sm font-medium text-white">{item.combo_nombre || item.producto_nombre || `Producto #${item.producto_id || ''}`}</p>
                   <p className="text-xs text-dark-400">{formatCurrency(item.precio_unitario)} c/u</p>
                   {item.notas && <p className="text-xs text-dark-500 mt-0.5">Nota: {item.notas}</p>}
                 </div>

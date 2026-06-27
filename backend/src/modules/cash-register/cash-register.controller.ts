@@ -13,7 +13,12 @@ export class CashRegisterController {
   });
 
   close = wrap(async (req, res) => {
-    const id = (req.params.id as string) || req.body.cashRegisterId;
+    let id = req.body.cashRegisterId;
+    if (!id) {
+      const open = await this.service.getCurrent();
+      if (!open) { res.status(404).json({ success: false, error: { message: 'No hay caja abierta' } }); return; }
+      id = open.id;
+    }
     const register = await this.service.close(id, req.user!.id, req.body.notes);
     res.json({ success: true, data: register });
   });
@@ -32,13 +37,19 @@ export class CashRegisterController {
   getHistory = wrap(async (req, res) => {
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 20;
-    const result = await this.service.getHistory(page, limit);
-    res.json({ success: true, ...result });
+    const { data, total } = await this.service.getHistory(page, limit);
+    res.json({ success: true, registers: data, total });
   });
 
   getSummary = wrap(async (req, res) => {
     const id = (req.params.id as string) || (req.query.cashRegisterId as string);
     const summary = await this.service.getSummary(id);
     res.json({ success: true, data: summary });
+  });
+
+  getWaiterReport = wrap(async (req, res) => {
+    const id = (req.params.id as string) || (req.query.cashRegisterId as string);
+    const result = await this.service.getWaiterReport(id);
+    res.json({ success: true, ...result });
   });
 }

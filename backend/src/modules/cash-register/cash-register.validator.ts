@@ -7,6 +7,5 @@ export const openCashRegisterSchema = z.object({
 
 export const closeCashRegisterSchema = z.object({
   cashRegisterId: z.string().optional(),
-  finalAmount: z.number().min(0, 'Final amount must be non-negative'),
   notes: z.string().max(300).optional(),
 });

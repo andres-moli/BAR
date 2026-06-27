@@ -13,7 +13,7 @@ export interface User {
   rol: UserRole;
   role: UserRole;
   activo: boolean;
-  ultimo_acceso: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +24,8 @@ export interface Table {
   id: number;
   numero: number;
   number: number;
+  nombre?: string;
+  name?: string;
   capacidad: number;
   capacity: number;
   estado: TableStatus;
@@ -64,6 +66,8 @@ export interface Product {
   image: string | null;
   activo: boolean;
   is_active: boolean;
+  mostrar_en_menu: boolean;
+  show_in_menu: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -73,9 +77,11 @@ export type OrderStatus = 'activa' | 'en_preparacion' | 'lista' | 'entregada' | 
 export interface OrderItem {
   id: number;
   pedido_id: number;
-  producto_id: number;
+  producto_id?: number | null;
   producto_nombre?: string;
   product_name?: string;
+  combo_id?: string | null;
+  combo_nombre?: string | null;
   cantidad: number;
   quantity: number;
   precio_unitario: number;
@@ -93,6 +99,7 @@ export interface SubOrder {
   id: string;
   pedido_id: string;
   mesa_numero?: number | null;
+  mesa_nombre?: string | null;
   estado: SubOrderStatus;
   creado_por: string;
   creado_por_id: string;
@@ -115,6 +122,7 @@ export interface Order {
   id: number;
   mesa_id: number;
   mesa_numero?: number;
+  mesa_nombre?: string;
   usuario_id: number;
   usuario_nombre?: string;
   cliente_id: number | null;
@@ -326,9 +334,50 @@ export interface CreateCollectionPayload {
   fecha_vencimiento: string;
 }
 
+export interface ComboProduct {
+  id: string;
+  combo_id: string;
+  producto_id: string;
+  product?: Product;
+  cantidad: number;
+}
+
+export interface Combo {
+  id: string;
+  nombre: string;
+  precio: number;
+  categoria_id: number;
+  category?: Category;
+  activo: boolean;
+  imagen?: string | null;
+  productos: ComboProduct[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface RegisterCollectionPaymentPayload {
   cuenta_cobro_id: number;
   monto: number;
   paymentMethodId: string;
   referencia?: string;
+}
+
+export interface WaiterReportProduct {
+  productName: string;
+  quantity: number;
+  total: number;
+}
+
+export interface WaiterReportOrder {
+  orderId: string;
+  tableNumber: number | null;
+  total: number;
+}
+
+export interface WaiterReport {
+  userId: string;
+  userName: string;
+  totalSales: number;
+  products: WaiterReportProduct[];
+  orders: WaiterReportOrder[];
 }

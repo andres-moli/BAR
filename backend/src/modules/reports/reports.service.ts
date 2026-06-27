@@ -10,11 +10,13 @@ export class ReportsService {
     private paymentRepo: Repository<Payment>,
   ) {}
 
+  private paidStatuses() { return ['COMPLETED', 'PAID']; }
+
   async salesByDay(startDate?: Date, endDate?: Date) {
     const qb = this.orderRepo.createQueryBuilder('o')
       .select("DATE(o.createdAt)", "date")
       .addSelect('SUM(o.total)', 'total')
-      .where('o.status = :status', { status: 'COMPLETED' });
+      .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() });
     if (startDate) qb.andWhere('o.createdAt >= :startDate', { startDate });
     if (endDate) qb.andWhere('o.createdAt <= :endDate', { endDate });
     return qb.groupBy('DATE(o.createdAt)').orderBy('DATE(o.createdAt)', 'DESC').getRawMany();
@@ -25,7 +27,7 @@ export class ReportsService {
       .select("EXTRACT(YEAR FROM o.createdAt)", "year")
       .addSelect("EXTRACT(MONTH FROM o.createdAt)", "month")
       .addSelect('SUM(o.total)', 'total')
-      .where('o.status = :status', { status: 'COMPLETED' });
+      .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() });
     if (year) qb.andWhere("EXTRACT(YEAR FROM o.createdAt) = :year", { year });
     if (month) qb.andWhere("EXTRACT(MONTH FROM o.createdAt) = :month", { month });
     return qb.groupBy('EXTRACT(YEAR FROM o.createdAt), EXTRACT(MONTH FROM o.createdAt)')
@@ -41,7 +43,7 @@ export class ReportsService {
       .addSelect('SUM(oi.subtotal)', 'total')
       .innerJoin('o.items', 'oi')
       .innerJoin('oi.product', 'p')
-      .where('o.status = :status', { status: 'COMPLETED' });
+      .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() });
     if (startDate) qb.andWhere('o.createdAt >= :startDate', { startDate });
     if (endDate) qb.andWhere('o.createdAt <= :endDate', { endDate });
     return qb.groupBy('p.name').orderBy('SUM(oi.subtotal)', 'DESC').getRawMany();
@@ -55,7 +57,7 @@ export class ReportsService {
       .innerJoin('o.items', 'oi')
       .innerJoin('oi.product', 'p')
       .innerJoin('p.category', 'c')
-      .where('o.status = :status', { status: 'COMPLETED' });
+      .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() });
     if (startDate) qb.andWhere('o.createdAt >= :startDate', { startDate });
     if (endDate) qb.andWhere('o.createdAt <= :endDate', { endDate });
     return qb.groupBy('c.name').orderBy('SUM(oi.subtotal)', 'DESC').getRawMany();
@@ -67,7 +69,7 @@ export class ReportsService {
       .addSelect('COUNT(o.id)', 'orders')
       .addSelect('SUM(o.total)', 'total')
       .innerJoin('o.user', 'u')
-      .where('o.status = :status', { status: 'COMPLETED' });
+      .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() });
     if (startDate) qb.andWhere('o.createdAt >= :startDate', { startDate });
     if (endDate) qb.andWhere('o.createdAt <= :endDate', { endDate });
     return qb.groupBy('u.name').orderBy('SUM(o.total)', 'DESC').getRawMany();
@@ -81,7 +83,7 @@ export class ReportsService {
       .addSelect('SUM(oi.subtotal)', 'total')
       .innerJoin('o.items', 'oi')
       .innerJoin('oi.product', 'p')
-      .where('o.status = :status', { status: 'COMPLETED' });
+      .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() });
     if (startDate) qb.andWhere('o.createdAt >= :startDate', { startDate });
     if (endDate) qb.andWhere('o.createdAt <= :endDate', { endDate });
     return qb.groupBy('p.id').addGroupBy('p.name')
@@ -137,7 +139,7 @@ export class ReportsService {
     ] = await Promise.all([
       this.orderRepo.createQueryBuilder('o')
         .select('SUM(o.total)', 'total')
-        .where('o.status = :status', { status: 'COMPLETED' })
+        .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() })
         .andWhere('o.createdAt >= :start', { start: today })
         .andWhere('o.createdAt < :end', { end: tomorrow })
         .getRawOne(),
@@ -174,6 +176,21 @@ export class ReportsService {
       metodos_pago: metodosPago.map((r: any) => ({ metodo: r.method, total: Number(r.total), cantidad: Number(r.count) })),
       ventas_por_periodo: ventasPorPeriodo.map((r: any) => ({ periodo: `${r.year}-${String(r.month).padStart(2, '0')}`, total: Number(r.total) })),
     };
+  }
+
+  async getProfit(startDate?: Date, endDate?: Date) {
+    const qb = this.orderRepo.createQueryBuilder('o')
+      .select('SUM(oi.subtotal)', 'ingresos')
+      .addSelect('SUM(oi.quantity * p.cost)', 'costo')
+      .innerJoin('o.items', 'oi')
+      .innerJoin('oi.product', 'p')
+      .where('o.status IN (:...statuses)', { statuses: this.paidStatuses() });
+    if (startDate) qb.andWhere('o.createdAt >= :startDate', { startDate });
+    if (endDate) qb.andWhere('o.createdAt <= :endDate', { endDate });
+    const result = await qb.getRawOne();
+    const ingresos = Number(result?.ingresos) || 0;
+    const costo = Number(result?.costo) || 0;
+    return { ingresos, costo, ganancia: ingresos - costo };
   }
 
   async clientsWithDebt() {

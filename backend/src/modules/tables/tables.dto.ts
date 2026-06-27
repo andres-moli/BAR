@@ -2,12 +2,14 @@ import { TableStatus } from './tables.entity';
 
 export interface CreateTableDto {
   number: number;
+  name?: string;
   capacity?: number;
   location?: string;
 }
 
 export interface UpdateTableDto {
   number?: number;
+  name?: string;
   capacity?: number;
   location?: string;
 }

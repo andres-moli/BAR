@@ -26,6 +26,9 @@ const FIELD_MAP: Record<string, string> = {
   monto: 'amount',
   referencia: 'reference',
   cuenta_cobro_id: 'collectionAccountId',
+  productos: 'productIds',
+  combo_id: 'comboId',
+  mostrar_en_menu: 'showInMenu',
 };
 
 const ENUM_VALUE_MAP: Record<string, Record<string, string>> = {

@@ -1,5 +1,5 @@
 import api from './api';
-import { CashRegister, CashMovement, CashRegisterSummary } from '@/types';
+import { CashRegister, CashMovement, CashRegisterSummary, WaiterReport } from '@/types';
 
 export const cashRegisterService = {
   getCurrent: async (): Promise<CashRegister | null> => {
@@ -12,7 +12,7 @@ export const cashRegisterService = {
     return data;
   },
 
-  close: async (payload: { finalAmount: number; notes?: string }): Promise<CashRegister> => {
+  close: async (payload: { notes?: string }): Promise<CashRegister> => {
     const { data } = await api.post<CashRegister>('/caja/cerrar', payload);
     return data;
   },
@@ -28,7 +28,12 @@ export const cashRegisterService = {
   },
 
   getHistory: async (params?: { page?: number; limit?: number }): Promise<{ data: CashRegister[]; total: number }> => {
-    const { data } = await api.get('/caja/historial', { params });
+    const res = await api.get<{ registers: CashRegister[]; total: number }>('/caja/historial', { params });
+    return { data: res.data.registers || [], total: res.data.total || 0 };
+  },
+
+  getWaiterReport: async (cashRegisterId: number): Promise<{ waiters: WaiterReport[] }> => {
+    const { data } = await api.get(`/caja/${cashRegisterId}/reporte-meseros`);
     return data;
   },
 };

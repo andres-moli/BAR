@@ -157,7 +157,7 @@ export default function BillingDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-white">Facturación #{order.id}</h1>
-            <p className="text-dark-400 text-sm">Mesa {order.mesa_numero || order.mesa_id} &middot; {formatDateTime(order.created_at)}</p>
+            <p className="text-dark-400 text-sm">{order.mesa_nombre || `Mesa ${order.mesa_numero || order.mesa_id}`} &middot; {formatDateTime(order.created_at)}</p>
           </div>
           <StatusBadge status={order.estado} label={ORDER_STATUS_LABELS[order.estado]} size="md" />
         </div>
@@ -173,7 +173,7 @@ export default function BillingDetailPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-dark-400 text-sm w-8 text-center font-mono">{item.cantidad}x</span>
                     <div>
-                      <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                      <p className="text-sm font-medium text-white">{item.combo_nombre || item.producto_nombre || `Producto #${item.producto_id || ''}`}</p>
                       <p className="text-xs text-dark-400">{formatCurrency(item.precio_unitario)} c/u</p>
                     </div>
                   </div>

@@ -260,7 +260,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-primary-400 font-bold">#{o.id}</span>
                   <span className="text-sm text-dark-300">
-                    Mesa {o.mesa_numero || o.mesa_id} &middot; {o.usuario_nombre || `Mesero #${o.usuario_id}`}
+                    {o.mesa_nombre || `Mesa ${o.mesa_numero || o.mesa_id}`} &middot; {o.usuario_nombre || `Mesero #${o.usuario_id}`}
                   </span>
                   <span className="text-xs text-dark-400">{o.items?.reduce((a, b) => a + b.cantidad, 0) || 0} productos</span>
                 </div>
@@ -294,7 +294,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-primary-400 font-bold">#{o.id}</span>
                   <span className="text-sm text-dark-300">
-                    Mesa {o.mesa_numero || o.mesa_id} &middot; {o.usuario_nombre || `Mesero #${o.usuario_id}`}
+                    {o.mesa_nombre || `Mesa ${o.mesa_numero || o.mesa_id}`} &middot; {o.usuario_nombre || `Mesero #${o.usuario_id}`}
                   </span>
                   <span className="text-xs text-dark-400">{o.items?.reduce((a, b) => a + b.cantidad, 0) || 0} items</span>
                 </div>

@@ -27,6 +27,11 @@ export const ordersService = {
     return data;
   },
 
+  addCombo: async (orderId: number, payload: { combo_id: string; cantidad: number }): Promise<Order> => {
+    const { data } = await api.post<Order>(`/pedidos/${orderId}/combo`, payload);
+    return data;
+  },
+
   addItem: async (orderId: number, payload: { producto_id: number; cantidad: number; notas?: string }): Promise<Order> => {
     const { data } = await api.post<Order>(`/pedidos/${orderId}/items`, payload);
     return data;

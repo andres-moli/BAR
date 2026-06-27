@@ -28,6 +28,7 @@ import { registerAccountRoutes } from './modules/accounts/accounts.routes';
 import { registerPaymentMethodRoutes } from './modules/payment-methods/payment-methods.routes';
 import { registerCashRegisterRoutes } from './modules/cash-register/cash-register.routes';
 import { registerInventarioRoutes } from './modules/inventario/inventario.routes';
+import { registerComboRoutes } from './modules/combos/combos.routes';
 
 const app = express();
 
@@ -92,6 +93,7 @@ registerAccountRoutes(v1);
 registerPaymentMethodRoutes(v1);
 registerCashRegisterRoutes(v1);
 registerInventarioRoutes(v1);
+registerComboRoutes(v1);
 
 api.use('/v1', v1);
 app.use('/api', api);

@@ -10,6 +10,7 @@ import {
   CreditCard,
   Search,
   Coffee,
+  Combine,
   SplitSquareHorizontal,
   Move,
   ArrowRight,
@@ -20,6 +21,7 @@ import { tablesService } from '@/services/tables';
 import { productsService } from '@/services/products';
 import { categoriesService } from '@/services/categories';
 import { ordersService } from '@/services/orders';
+import { combosService } from '@/services/combos';
 import { subOrdersService } from '@/services/subOrders';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -75,6 +77,11 @@ export default function TableDetailPage() {
     queryFn: () => categoriesService.getAll(),
   });
 
+  const { data: combos } = useQuery({
+    queryKey: ['combos', 'active'],
+    queryFn: () => combosService.getActive(),
+  });
+
   const { data: allTables } = useQuery({
     queryKey: ['tables'],
     queryFn: () => tablesService.getAll(),
@@ -115,6 +122,16 @@ export default function TableDetailPage() {
       toast.success('Producto agregado');
     },
     onError: (err) => handleError(err, 'Error al agregar producto'),
+  });
+
+  const addComboMutation = useMutation({
+    mutationFn: (comboId: string) =>
+      ordersService.addCombo(activeOrder!.id, { combo_id: comboId, cantidad: 1 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', 'by-table', tableId] });
+      toast.success('Combo agregado');
+    },
+    onError: (err) => handleError(err, 'Error al agregar combo'),
   });
 
   const removeItemMutation = useMutation({
@@ -242,7 +259,7 @@ export default function TableDetailPage() {
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || p.categoria_id === selectedCategory;
-    return matchesSearch && matchesCategory && p.activo;
+    return matchesSearch && matchesCategory && p.activo && p.mostrar_en_menu !== false;
   });
 
   const groupedCategories = categories?.filter((c) => c.activo) || [];
@@ -273,7 +290,7 @@ export default function TableDetailPage() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-white">Mesa #{table.numero}</h1>
+            <h1 className="text-xl font-bold text-white">{table.nombre || `Mesa #${table.numero}`}</h1>
             <p className="text-sm text-dark-400">{table.ubicacion || 'Sin ubicación'} &middot; Cap. {table.capacidad}</p>
           </div>
           <StatusBadge status={table.estado} label={TABLE_STATUS_LABELS[table.estado]} size="md" />
@@ -311,6 +328,31 @@ export default function TableDetailPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 content-start">
+          {(combos || []).filter((c) => c.activo).map((combo) => (
+            <Card
+              key={combo.id}
+              hover
+              onClick={() => {
+                if (!activeOrder) {
+                  toast.error('No hay pedido activo');
+                  return;
+                }
+                addComboMutation.mutate(combo.id);
+              }}
+              className="flex flex-col items-center text-center p-3 border-2 border-amber-500/20"
+            >
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-2">
+                {combo.imagen ? (
+                  <img src={combo.imagen} alt={combo.nombre} className="w-full h-full object-cover rounded-xl" />
+                ) : (
+                  <Combine className="w-6 h-6 text-amber-400" />
+                )}
+              </div>
+              <p className="text-sm font-medium text-white line-clamp-1">{combo.nombre}</p>
+              <p className="text-sm font-bold text-amber-400 mt-1">{formatCurrency(Number(combo.precio))}</p>
+              <span className="text-xs text-amber-500/70 mt-1">{combo.productos?.length || 0} productos</span>
+            </Card>
+          ))}
           {filteredProducts.map((product) => (
             <Card
               key={product.id}
@@ -357,7 +399,7 @@ export default function TableDetailPage() {
                   {ungroupedItems.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 bg-dark-700/50 rounded-lg p-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                        <p className="text-sm font-medium text-white">{item.combo_nombre || item.producto_nombre || `Producto #${item.producto_id || ''}`}</p>
                         <p className="text-xs text-dark-400">{formatCurrency(item.precio_unitario)} c/u</p>
                         {item.notas && <p className="text-xs text-dark-500 mt-0.5">Nota: {item.notas}</p>}
                       </div>
@@ -366,7 +408,7 @@ export default function TableDetailPage() {
                           onClick={() => {
                             Swal.fire({
                               title: 'Reducir cantidad',
-                              text: `¿Quitar 1 unidad de ${item.producto_nombre || 'este producto'}?`,
+                              text: `¿Quitar 1 unidad de ${item.combo_nombre || item.producto_nombre || 'este producto'}?`,
                               icon: 'question',
                               showCancelButton: true,
                               confirmButtonText: 'Sí',
@@ -391,7 +433,7 @@ export default function TableDetailPage() {
                           onClick={() => {
                             Swal.fire({
                               title: 'Aumentar cantidad',
-                              text: `¿Agregar 1 unidad más de ${item.producto_nombre || 'este producto'}?`,
+                              text: `¿Agregar 1 unidad más de ${item.combo_nombre || item.producto_nombre || 'este producto'}?`,
                               icon: 'question',
                               showCancelButton: true,
                               confirmButtonText: 'Sí',
@@ -413,7 +455,7 @@ export default function TableDetailPage() {
                         onClick={() => {
                           Swal.fire({
                             title: 'Eliminar producto',
-                            html: `¿Eliminar <strong>${item.producto_nombre || 'este producto'}</strong> del pedido?<br><span class="text-sm text-dark-400">Se devolverá al inventario</span>`,
+                            html: `¿Eliminar <strong>${item.combo_nombre || item.producto_nombre || 'este producto'}</strong> del pedido?<br><span class="text-sm text-dark-400">Se devolverá al inventario</span>`,
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonText: 'Sí, eliminar',
@@ -455,7 +497,7 @@ export default function TableDetailPage() {
                   {activeOrder.items.filter((i) => i.sub_orden_id === so.id).map((item) => (
                     <div key={item.id} className="flex items-center gap-3 bg-dark-800/50 rounded-lg p-2.5 border border-dark-600">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-dark-200">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                        <p className="text-sm text-dark-200">{item.combo_nombre || item.producto_nombre || `Producto #${item.producto_id || ''}`}</p>
                         {item.notas && <p className="text-xs text-dark-500">Nota: {item.notas}</p>}
                       </div>
                       <span className="text-sm text-dark-300">{item.cantidad}x</span>
@@ -577,7 +619,7 @@ export default function TableDetailPage() {
       <Modal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        title={`Cobrar - Mesa #${table.numero}`}
+        title={`Cobrar - ${table.nombre || `Mesa #${table.numero}`}`}
         size="lg"
         footer={
           <>
@@ -624,7 +666,7 @@ export default function TableDetailPage() {
           {activeOrder?.items.map((item) => (
             <div key={item.id} className="flex items-center gap-3 bg-dark-700/50 rounded-lg p-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white">{item.producto_nombre || `Producto #${item.producto_id}`}</p>
+                <p className="text-sm font-medium text-white">{item.combo_nombre || item.producto_nombre || `Producto #${item.producto_id || ''}`}</p>
                 <p className="text-xs text-dark-400">Disponible: {item.cantidad}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -676,7 +718,7 @@ export default function TableDetailPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-dark-300">
-            Pedido actual en Mesa #{table.numero}
+            Pedido actual en {table.nombre || `Mesa #${table.numero}`}
           </p>
           <Select
             label="Nueva Mesa"
@@ -685,7 +727,7 @@ export default function TableDetailPage() {
             placeholder="Seleccione una mesa"
             options={(allTables || [])
               .filter((t) => t.estado === 'disponible' || t.id === tableId)
-              .map((t) => ({ value: t.id.toString(), label: `Mesa #${t.numero} (${t.capacidad} pers.)` }))}
+              .map((t) => ({ value: t.id.toString(), label: `${t.nombre || `Mesa #${t.numero}`} (${t.capacidad} pers.)` }))}
           />
         </div>
       </Modal>

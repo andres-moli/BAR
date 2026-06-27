@@ -39,6 +39,12 @@ export class OrderController {
     res.status(201).json({ success: true, data: order });
   });
 
+  addCombo = wrap(async (req, res) => {
+    const result = await this.service.addCombo(req.params.id as string, { ...req.body, userId: req.user!.id });
+    const order = await this.service.findById(result.newOrderId);
+    res.status(201).json({ success: true, data: order });
+  });
+
   updateItem = wrap(async (req, res) => {
     const result = await this.service.updateItem(req.params.itemId as string, req.body);
     const order = await this.service.findById(result.newOrderId);

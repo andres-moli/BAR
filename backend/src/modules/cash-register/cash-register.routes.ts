@@ -7,12 +7,16 @@ import { CashRegisterController } from './cash-register.controller';
 import { authenticate, authorize } from '../../shared/middleware';
 import { validate } from '../../shared/middleware';
 import { openCashRegisterSchema, closeCashRegisterSchema } from './cash-register.validator';
+import { Payment } from '../payments/payments.entity';
+import { Order } from '../orders/orders.entity';
 
 export function registerCashRegisterRoutes(router: Router): void {
   const subrouter = Router();
   const repo = AppDataSource.getRepository(CashRegister);
   const movementRepo = AppDataSource.getRepository(CashMovement);
-  const service = new CashRegisterService(repo, movementRepo);
+  const paymentRepo = AppDataSource.getRepository(Payment);
+  const orderRepo = AppDataSource.getRepository(Order);
+  const service = new CashRegisterService(repo, movementRepo, paymentRepo, orderRepo);
   const controller = new CashRegisterController(service);
 
   subrouter.post('/abrir', authenticate, validate(openCashRegisterSchema), controller.open);
@@ -20,6 +24,7 @@ export function registerCashRegisterRoutes(router: Router): void {
   subrouter.get('/actual', authenticate, controller.getCurrent);
   subrouter.get('/:id/movimientos', authenticate, controller.getMovements);
   subrouter.get('/:id/resumen', authenticate, controller.getSummary);
+  subrouter.get('/:id/reporte-meseros', authenticate, controller.getWaiterReport);
   subrouter.get('/historial', authenticate, controller.getHistory);
 
   router.use('/caja', subrouter);

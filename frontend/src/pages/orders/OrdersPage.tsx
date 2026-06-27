@@ -88,7 +88,7 @@ export default function OrdersPage() {
     { key: 'id', header: 'ID', sortable: true, render: (o) => <span className="font-mono text-primary-400">#{o.id}</span> },
     {
       key: 'mesa_numero', header: 'Mesa', sortable: true,
-      render: (o) => <span className="font-medium">Mesa {o.mesa_numero || o.mesa_id}</span>,
+      render: (o) => <span className="font-medium">{o.mesa_nombre || `Mesa ${o.mesa_numero || o.mesa_id}`}</span>,
     },
     {
       key: 'usuario_nombre', header: 'Mesero', sortable: true,
@@ -214,7 +214,7 @@ export default function OrdersPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-dark-300">
-            Pedido #{changeTableOrder?.id} - Mesa actual: {changeTableOrder?.mesa_numero || changeTableOrder?.mesa_id}
+            Pedido #{changeTableOrder?.id} - Mesa actual: {changeTableOrder?.mesa_nombre || `Mesa #${changeTableOrder?.mesa_numero || changeTableOrder?.mesa_id}`}
           </p>
           <Select
             label="Nueva Mesa"
@@ -223,7 +223,7 @@ export default function OrdersPage() {
             placeholder="Seleccione una mesa"
             options={(tables || [])
               .filter((t) => t.estado === 'disponible' || t.id === changeTableOrder?.mesa_id)
-              .map((t) => ({ value: t.id.toString(), label: `Mesa #${t.numero} (${t.capacidad} pers.)` }))}
+              .map((t) => ({ value: t.id.toString(), label: `${t.nombre || `Mesa #${t.numero}`} (${t.capacidad} pers.)` }))}
           />
         </div>
       </Modal>

@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CashRegister, CashRegisterStatus } from './cash-register.entity';
 import { CashMovement } from './cash-movement.entity';
 import { OpenCashRegisterDto, CashRegisterSummaryDto } from './cash-register.dto';
@@ -8,6 +8,8 @@ export class CashRegisterService {
   constructor(
     private repo: Repository<CashRegister>,
     private movementRepo: Repository<CashMovement>,
+    private paymentRepo: any,
+    private orderRepo: any,
   ) {}
 
   async open(data: OpenCashRegisterDto, userId: string): Promise<CashRegister> {
@@ -52,11 +54,22 @@ export class CashRegisterService {
     });
   }
 
-  async getHistory(page = 1, limit = 20): Promise<{ data: CashRegister[]; total: number }> {
-    const [data, total] = await this.repo.findAndCount({
+  async getHistory(page = 1, limit = 20): Promise<{ data: any[]; total: number }> {
+    const [registers, total] = await this.repo.findAndCount({
       order: { date: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
+      relations: ['movements'],
+    });
+    const data = registers.map(r => {
+      const j = r.toJSON();
+      const entrance = (r.movements || [])
+        .filter(m => Number(m.amount) >= 0)
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+      const exit = (r.movements || [])
+        .filter(m => Number(m.amount) < 0)
+        .reduce((sum, m) => sum + Math.abs(Number(m.amount)), 0);
+      return { ...j, totalEntrance: entrance, totalExit: exit };
     });
     return { data, total };
   }
@@ -80,5 +93,51 @@ export class CashRegisterService {
       totalAmount: data.totalAmount,
       type: data.type,
     }));
+  }
+
+  async getWaiterReport(registerId: string): Promise<{ waiters: any[] }> {
+    const movements = await this.movementRepo.find({
+      where: { cashRegisterId: registerId, type: 'INCOME' },
+    });
+    const paymentIds = movements.filter(m => m.paymentId).map(m => m.paymentId);
+    if (paymentIds.length === 0) return { waiters: [] };
+
+    const payments = await this.paymentRepo.find({
+      where: { id: In(paymentIds) },
+      relations: ['user', 'order', 'order.items', 'order.items.product', 'order.table'],
+    });
+
+    const byUser: Record<string, any> = {};
+    for (const payment of payments) {
+      const userId = payment.userId;
+      const userName = payment.user?.nombre || payment.user?.name || 'Desconocido';
+      if (!byUser[userId]) {
+        byUser[userId] = { userId, userName, totalSales: 0, products: {}, orders: [] };
+      }
+      const entry = byUser[userId];
+      entry.totalSales += Number(payment.amount);
+      if (payment.order?.items) {
+        for (const item of payment.order.items) {
+          const productName = item.comboName || item.product?.name || `Producto #${item.productId}`;
+          if (!entry.products[productName]) {
+            entry.products[productName] = { productName, quantity: 0, total: 0 };
+          }
+          entry.products[productName].quantity += item.quantity;
+          entry.products[productName].total += Number(item.subtotal);
+        }
+      }
+      entry.orders.push({
+        orderId: payment.orderId,
+        tableNumber: payment.order?.table?.numero || payment.order?.table?.number || null,
+        total: Number(payment.amount),
+      });
+    }
+
+    const waiters = Object.values(byUser).map((w: any) => ({
+      ...w,
+      products: Object.values(w.products),
+    }));
+
+    return { waiters };
   }
 }

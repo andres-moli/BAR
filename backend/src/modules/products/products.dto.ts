@@ -6,6 +6,7 @@ export interface CreateProductDto {
   categoryId: string;
   stock?: number;
   imageUrl?: string;
+  showInMenu?: boolean;
 }
 
 export interface UpdateProductDto {
@@ -17,6 +18,7 @@ export interface UpdateProductDto {
   isActive?: boolean;
   stock?: number;
   imageUrl?: string;
+  showInMenu?: boolean;
 }
 
 export interface ProductResponseDto {
@@ -28,6 +30,7 @@ export interface ProductResponseDto {
   categoryId: string;
   category?: { id: string; name: string };
   isActive: boolean;
+  showInMenu: boolean;
   stock: number;
   imageUrl: string | null;
   createdAt: Date;

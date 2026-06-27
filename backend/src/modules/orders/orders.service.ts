@@ -4,6 +4,7 @@ import { OrderItem } from './order-item.entity';
 import { Product } from '../products/products.entity';
 import { Movement } from '../products/movement.entity';
 import { TableEntity, TableStatus } from '../tables/tables.entity';
+import { Combo } from '../combos/combo.entity';
 import { NotFoundError, ConflictError } from '../../shared/errors';
 import { CreateOrderDto, AddItemDto, UpdateItemDto, SplitOrderDto } from './orders.dto';
 
@@ -16,6 +17,7 @@ export class OrdersService {
     private productRepo: Repository<Product>,
     private tableRepo: Repository<TableEntity>,
     private movementRepo: Repository<Movement>,
+    private comboRepo: Repository<Combo>,
   ) {}
 
   async findAll(filters?: { status?: string; tableId?: string; userId?: string; clientId?: string; startDate?: Date; endDate?: Date }): Promise<Order[]> {
@@ -139,6 +141,8 @@ export class OrdersService {
       const newItem = this.itemRepo.create({
         orderId: newOrder.id,
         productId: item.productId,
+        comboId: item.comboId,
+        comboName: item.comboName,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         subtotal: item.subtotal,
@@ -183,6 +187,41 @@ export class OrdersService {
     return { item, newOrderId: newOrder.id };
   }
 
+  async addCombo(orderId: string, dto: { comboId: string; quantity: number; userId?: string }): Promise<{ items: OrderItem[]; newOrderId: string }> {
+    const order = await this.findById(orderId);
+    if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.PAID || order.status === OrderStatus.CANCELLED) {
+      throw new ConflictError('Cannot modify a completed or paid or cancelled order');
+    }
+    const combo = await this.comboRepo.findOne({ where: { id: dto.comboId }, relations: ['products', 'products.product'] });
+    if (!combo) throw new NotFoundError('Combo not found');
+    if (!combo.products?.length) throw new ConflictError('Combo has no products');
+
+    const newOrder = await this.cloneOrder(order);
+    const comboQty = dto.quantity || 1;
+    const unitPrice = Number(combo.price);
+    const subtotal = Number((unitPrice * comboQty).toFixed(2));
+
+    const item = this.itemRepo.create({
+      orderId: newOrder.id,
+      comboId: dto.comboId,
+      comboName: combo.name,
+      quantity: comboQty,
+      unitPrice,
+      subtotal,
+      notes: `Combo: ${combo.name}`,
+    });
+    await this.itemRepo.save(item);
+
+    for (const cp of combo.products) {
+      if (!cp.product) continue;
+      const qty = cp.quantity * comboQty;
+      await this.adjustStock(cp.product, -qty, `Combo #${combo.name} agregado a pedido #${orderId}`, order.userId);
+    }
+
+    await this.recalculateTotals(newOrder.id);
+    return { items: [item], newOrderId: newOrder.id };
+  }
+
   async updateItem(itemId: string, dto: UpdateItemDto): Promise<{ item: OrderItem; newOrderId: string }> {
     const currentItem = await this.itemRepo.findOne({ where: { id: itemId }, relations: ['order'] });
     if (!currentItem) throw new NotFoundError('Order item not found');
@@ -194,8 +233,16 @@ export class OrdersService {
     const newOrder = await this.cloneOrder(order);
 
     const newItems = await this.itemRepo.find({ where: { orderId: newOrder.id } });
-    const targetItem = newItems.find(i => Number(i.productId) === Number(currentItem.productId) && i.quantity === currentItem.quantity);
-    const itemToUpdate = targetItem || (await this.itemRepo.findOne({ where: { orderId: newOrder.id, productId: currentItem.productId } }));
+    const targetItem = newItems.find(i =>
+      currentItem.comboId
+        ? i.comboId === currentItem.comboId && Number(i.quantity) === Number(currentItem.quantity)
+        : i.productId && Number(i.productId) === Number(currentItem.productId) && Number(i.quantity) === Number(currentItem.quantity)
+    );
+    const itemToUpdate = targetItem || (await this.itemRepo.findOne({
+      where: currentItem.comboId
+        ? { orderId: newOrder.id, comboId: currentItem.comboId }
+        : { orderId: newOrder.id, productId: currentItem.productId! },
+    }));
 
     if (!itemToUpdate) throw new NotFoundError('Could not find matching item in new version');
 
@@ -211,9 +258,19 @@ export class OrdersService {
 
     const diff = Number(itemToUpdate.quantity) - oldQty;
     if (diff !== 0) {
-      const product = await this.productRepo.findOne({ where: { id: itemToUpdate.productId } });
-      if (product) {
-        await this.adjustStock(product, -diff, `Cantidad ajustada en pedido #${order.id} (${oldQty} → ${itemToUpdate.quantity})`, order.userId);
+      if (currentItem.comboId) {
+        const combo = await this.comboRepo.findOne({ where: { id: currentItem.comboId }, relations: ['products', 'products.product'] });
+        if (combo) {
+          for (const cp of combo.products) {
+            if (!cp.product) continue;
+            await this.adjustStock(cp.product, -(cp.quantity * diff), `Cantidad de combo ajustada en pedido #${order.id}`, order.userId);
+          }
+        }
+      } else if (itemToUpdate.productId) {
+        const product = await this.productRepo.findOne({ where: { id: itemToUpdate.productId } });
+        if (product) {
+          await this.adjustStock(product, -diff, `Cantidad ajustada en pedido #${order.id} (${oldQty} → ${itemToUpdate.quantity})`, order.userId);
+        }
       }
     }
 
@@ -222,7 +279,7 @@ export class OrdersService {
   }
 
   async removeItem(itemId: string): Promise<{ newOrderId: string }> {
-    const currentItem = await this.itemRepo.findOne({ where: { id: itemId }, relations: ['order', 'product'] });
+    const currentItem = await this.itemRepo.findOne({ where: { id: itemId }, relations: ['order'] });
     if (!currentItem) throw new NotFoundError('Order item not found');
     if (currentItem.order.status === OrderStatus.COMPLETED || currentItem.order.status === OrderStatus.PAID || currentItem.order.status === OrderStatus.CANCELLED) {
       throw new ConflictError('Cannot modify a completed or paid or cancelled order');
@@ -232,14 +289,32 @@ export class OrdersService {
     const newOrder = await this.cloneOrder(order);
 
     const newItems = await this.itemRepo.find({ where: { orderId: newOrder.id } });
-    const targetItem = newItems.find(i => Number(i.productId) === Number(currentItem.productId) && i.quantity === currentItem.quantity);
-    const itemToRemove = targetItem || (await this.itemRepo.findOne({ where: { orderId: newOrder.id, productId: currentItem.productId } }));
+    const itemToRemove = newItems.find(i =>
+      currentItem.comboId
+        ? i.comboId === currentItem.comboId && Number(i.quantity) === Number(currentItem.quantity)
+        : i.productId && Number(i.productId) === Number(currentItem.productId) && Number(i.quantity) === Number(currentItem.quantity)
+    ) || await this.itemRepo.findOne({
+      where: currentItem.comboId
+        ? { orderId: newOrder.id, comboId: currentItem.comboId }
+        : { orderId: newOrder.id, productId: currentItem.productId! },
+    });
 
     if (itemToRemove) {
       await this.itemRepo.remove(itemToRemove);
-      const product = await this.productRepo.findOne({ where: { id: itemToRemove.productId } });
-      if (product) {
-        await this.adjustStock(product, Number(itemToRemove.quantity), `Eliminado de pedido #${order.id}`, order.userId);
+
+      if (currentItem.comboId) {
+        const combo = await this.comboRepo.findOne({ where: { id: currentItem.comboId }, relations: ['products', 'products.product'] });
+        if (combo) {
+          for (const cp of combo.products) {
+            if (!cp.product) continue;
+            await this.adjustStock(cp.product, cp.quantity * Number(currentItem.quantity), `Combo eliminado de pedido #${order.id}`, order.userId);
+          }
+        }
+      } else if (itemToRemove.productId) {
+        const product = await this.productRepo.findOne({ where: { id: itemToRemove.productId } });
+        if (product) {
+          await this.adjustStock(product, Number(itemToRemove.quantity), `Eliminado de pedido #${order.id}`, order.userId);
+        }
       }
     }
 

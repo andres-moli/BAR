@@ -17,21 +17,12 @@ export class TablesService {
   }
 
   async create(data: CreateTableDto): Promise<TableEntity> {
-    const existing = await this.tableRepo.findOne({ where: { number: data.number } });
-    if (existing) throw new ConflictError('Table number already exists');
-
     const table = this.tableRepo.create(data);
     return this.tableRepo.save(table);
   }
 
   async update(id: string, data: UpdateTableDto): Promise<TableEntity> {
     const table = await this.findById(id);
-
-    if (data.number && data.number !== table.number) {
-      const existing = await this.tableRepo.findOne({ where: { number: data.number } });
-      if (existing) throw new ConflictError('Table number already exists');
-    }
-
     Object.assign(table, data);
     return this.tableRepo.save(table);
   }

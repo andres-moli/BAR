@@ -28,6 +28,7 @@ export class SubOrder {
       id: this.id,
       pedido_id: this.orderId,
       mesa_numero: this.order?.table?.number || null,
+      mesa_nombre: this.order?.table?.name || null,
       estado: SubOrderStatus[this.status],
       creado_por: this.creator?.name || this.createdBy,
       creado_por_id: this.createdBy,

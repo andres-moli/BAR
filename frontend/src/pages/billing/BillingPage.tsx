@@ -32,6 +32,7 @@ export default function BillingPage() {
     return (
       o.id.toString().includes(q) ||
       (o.mesa_numero?.toString().includes(q)) ||
+      (o.mesa_nombre?.toLowerCase().includes(q)) ||
       (o.usuario_nombre?.toLowerCase().includes(q))
     );
   });
@@ -64,7 +65,7 @@ export default function BillingPage() {
 
   const columns: Column<Order>[] = [
     { key: 'id', header: 'Pedido', render: (o) => <span className="font-mono text-primary-400 font-bold">#{o.id}</span> },
-    { key: 'mesa_numero', header: 'Mesa', render: (o) => <span>Mesa {o.mesa_numero || o.mesa_id}</span> },
+    { key: 'mesa_numero', header: 'Mesa', render: (o) => <span>{o.mesa_nombre || `Mesa ${o.mesa_numero || o.mesa_id}`}</span> },
     { key: 'usuario_nombre', header: 'Mesero', render: (o) => <span>{o.usuario_nombre || `#${o.usuario_id}`}</span> },
     { key: 'estado', header: 'Estado', render: (o) => <StatusBadge status={o.estado} label={ORDER_STATUS_LABELS[o.estado]} /> },
     { key: 'items', header: 'Productos', render: (o) => <span>{o.items?.reduce((a, b) => a + b.cantidad, 0) || 0}</span> },
@@ -94,7 +95,7 @@ export default function BillingPage() {
                 <div className="flex items-center gap-4">
                   <span className="font-mono text-primary-400 font-bold text-lg">#{order.id}</span>
                   <StatusBadge status={order.estado} label={ORDER_STATUS_LABELS[order.estado]} />
-                  <span className="text-dark-400 text-sm">Mesa {order.mesa_numero || order.mesa_id}</span>
+                  <span className="text-dark-400 text-sm">{order.mesa_nombre || `Mesa ${order.mesa_numero || order.mesa_id}`}</span>
                   <span className="text-dark-400 text-sm">{order.usuario_nombre || `Mesero #${order.usuario_id}`}</span>
                 </div>
                 <span className="text-xl font-bold text-white">{formatCurrency(order.total)}</span>
@@ -103,7 +104,7 @@ export default function BillingPage() {
                 <div className="flex flex-wrap gap-2">
                   {order.items?.slice(0, 5).map((item) => (
                     <span key={item.id} className="text-xs bg-dark-700 text-dark-300 px-2 py-1 rounded-md">
-                      {item.producto_nombre || `Producto #${item.producto_id}`} x{item.cantidad}
+                      {item.combo_nombre || item.producto_nombre || `Producto #${item.producto_id || ''}`} x{item.cantidad}
                     </span>
                   ))}
                   {(order.items?.length || 0) > 5 && (

@@ -8,6 +8,8 @@ export const createProductSchema = z.object({
   categoryId: z.string(),
   stock: z.number().int().min(0).optional().default(0),
   imageUrl: z.string().url().optional().or(z.literal('')),
+  showInMenu: z.boolean().optional(),
+  isActive: z.boolean().optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -19,4 +21,5 @@ export const updateProductSchema = z.object({
   isActive: z.boolean().optional(),
   stock: z.number().int().min(0).optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),
+  showInMenu: z.boolean().optional(),
 });

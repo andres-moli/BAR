@@ -15,14 +15,20 @@ export function registerReportRoutes(router: Router): void {
 
   subrouter.get('/dashboard', authenticate, controller.dashboardHandler);
   subrouter.get('/sales/day', authenticate, controller.salesByDayHandler);
+  subrouter.get('/ventas', authenticate, controller.salesByDayHandler);
   subrouter.get('/sales/month', authenticate, controller.salesByMonthHandler);
   subrouter.get('/sales/product', authenticate, controller.salesByProductHandler);
+  subrouter.get('/productos', authenticate, controller.salesByProductHandler);
   subrouter.get('/sales/category', authenticate, controller.salesByCategoryHandler);
   subrouter.get('/sales/user', authenticate, controller.salesByUserHandler);
   subrouter.get('/top-products', authenticate, controller.topProductsHandler);
   subrouter.get('/payment-methods', authenticate, controller.paymentMethodsHandler);
+  subrouter.get('/metodos-pago', authenticate, controller.paymentMethodsHandler);
   subrouter.get('/collections', authenticate, controller.collectionsHandler);
+  subrouter.get('/cuentas-cobro', authenticate, controller.collectionsHandler);
   subrouter.get('/clients-debt', authenticate, controller.clientsWithDebtHandler);
+  subrouter.get('/clientes', authenticate, controller.clientsWithDebtHandler);
+  subrouter.get('/ganancia', authenticate, controller.profitHandler);
 
   router.use('/reportes', subrouter);
 }

@@ -87,7 +87,7 @@ export default function SubOrdersPage() {
                       Suborden #{so.id.slice(-6)}
                     </p>
                     <p className="text-xs text-dark-400">
-                      {so.mesa_numero ? `Mesa #${so.mesa_numero} · ` : ''}Creado por: {so.creado_por}
+                      {so.mesa_numero ? `${so.mesa_nombre || `Mesa #${so.mesa_numero}`} · ` : ''}Creado por: {so.creado_por}
                     </p>
                   </div>
                   <span className="flex items-center gap-1 text-xs text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded-full">
@@ -101,7 +101,7 @@ export default function SubOrdersPage() {
                   ) : (
                     items.map((item) => (
                       <div key={item.id} className="flex justify-between text-sm">
-                        <span className="text-dark-300">{item.cantidad}x {item.producto_nombre || `Producto #${item.producto_id}`}</span>
+                        <span className="text-dark-300">{item.cantidad}x {item.combo_nombre || item.producto_nombre || `Producto #${item.producto_id || ''}`}</span>
                         <span className="text-dark-200">{formatCurrency(item.subtotal)}</span>
                       </div>
                     ))

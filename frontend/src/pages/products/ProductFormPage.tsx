@@ -24,6 +24,7 @@ const productSchema = z.object({
   descripcion: z.string().optional(),
   imagen: z.string().optional(),
   activo: z.boolean(),
+  mostrar_en_menu: z.boolean(),
 });
 
 type ProductForm = z.infer<typeof productSchema>;
@@ -52,7 +53,7 @@ export default function ProductFormPage() {
     formState: { errors, isSubmitting },
   } = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
-    defaultValues: { nombre: '', categoria_id: 0, precio: 0, costo: 0, stock: 0, descripcion: '', imagen: '', activo: true },
+    defaultValues: { nombre: '', categoria_id: 0, precio: 0, costo: 0, stock: 0, descripcion: '', imagen: '', activo: true, mostrar_en_menu: true },
   });
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function ProductFormPage() {
         descripcion: product.descripcion,
         imagen: product.imagen || '',
         activo: product.activo,
+        mostrar_en_menu: product.mostrar_en_menu,
       });
     }
   }, [product, reset]);
@@ -86,6 +88,8 @@ export default function ProductFormPage() {
       image: data.imagen || null,
       activo: data.activo,
       is_active: data.activo,
+      mostrar_en_menu: data.mostrar_en_menu,
+      show_in_menu: data.mostrar_en_menu,
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -193,14 +197,25 @@ export default function ProductFormPage() {
             {...register('imagen')}
           />
 
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="activo"
-              className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-600 focus:ring-primary-500"
-              {...register('activo')}
-            />
-            <label htmlFor="activo" className="text-sm text-dark-300">Producto activo</label>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="activo"
+                className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-600 focus:ring-primary-500"
+                {...register('activo')}
+              />
+              <label htmlFor="activo" className="text-sm text-dark-300">Producto activo</label>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="mostrar_en_menu"
+                className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-600 focus:ring-primary-500"
+                {...register('mostrar_en_menu')}
+              />
+              <label htmlFor="mostrar_en_menu" className="text-sm text-dark-300">Mostrar en menú</label>
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-dark-700">

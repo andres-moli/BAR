@@ -5,6 +5,7 @@ import { OrderItem } from './order-item.entity';
 import { Product } from '../products/products.entity';
 import { Movement } from '../products/movement.entity';
 import { TableEntity } from '../tables/tables.entity';
+import { Combo } from '../combos/combo.entity';
 import { OrdersService } from './orders.service';
 import { OrderController } from './orders.controller';
 import { authenticate, authorize, validate } from '../../shared/middleware';
@@ -17,16 +18,18 @@ export function registerOrderRoutes(router: Router): void {
   const productRepo = AppDataSource.getRepository(Product);
   const movementRepo = AppDataSource.getRepository(Movement);
   const tableRepo = AppDataSource.getRepository(TableEntity);
-  const ordersService = new OrdersService(orderRepo, orderItemRepo, productRepo, tableRepo, movementRepo);
+  const comboRepo = AppDataSource.getRepository(Combo);
+  const ordersService = new OrdersService(orderRepo, orderItemRepo, productRepo, tableRepo, movementRepo, comboRepo);
   const ordersController = new OrderController(ordersService);
 
   subrouter.get('/', authenticate, ordersController.getAll);
+  subrouter.get('/pending-approval', authenticate, authorize('ADMIN'), ordersController.getPendingApproval);
   subrouter.get('/:id', authenticate, ordersController.getById);
   subrouter.post('/', authenticate, validate(createOrderSchema), ordersController.create);
   subrouter.post('/:id/items', authenticate, validate(addItemSchema), ordersController.addItem);
+  subrouter.post('/:id/combo', authenticate, ordersController.addCombo);
   subrouter.put('/:id/items/:itemId', authenticate, validate(updateItemSchema), ordersController.updateItem);
   subrouter.delete('/:id/items/:itemId', authenticate, ordersController.removeItem);
-  subrouter.get('/pending-approval', authenticate, authorize('ADMIN'), ordersController.getPendingApproval);
   subrouter.get('/:id/history', authenticate, ordersController.getHistory);
   subrouter.get('/:id/versions', authenticate, ordersController.getVersions);
   subrouter.get('/mesa/:mesaId', authenticate, ordersController.getByTable);

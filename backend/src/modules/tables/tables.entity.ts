@@ -20,8 +20,11 @@ export class TableEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column({ type: 'int', unique: true })
+  @Column({ type: 'int' })
   number: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  name: string;
 
   @Column({ type: 'enum', enum: TableStatus, default: TableStatus.AVAILABLE })
   status: TableStatus;
@@ -45,6 +48,7 @@ export class TableEntity {
     return {
       id: this.id,
       numero: this.number,
+      nombre: this.name,
       capacidad: this.capacity,
       estado: mapTableStatus(this.status),
       ubicacion: this.location,

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Users } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tablesService } from '@/services/tables';
 import { ordersService } from '@/services/orders';
@@ -27,7 +27,7 @@ export default function TablesPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  const [formData, setFormData] = useState({ numero: 0, capacidad: 2, ubicacion: '' });
+  const [formData, setFormData] = useState({ numero: 0, nombre: '', capacidad: 2, ubicacion: '' });
 
   const { data: tables, isLoading } = useQuery({
     queryKey: ['tables'],
@@ -40,7 +40,7 @@ export default function TablesPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: () => tablesService.create({ numero: formData.numero, number: formData.numero, capacidad: formData.capacidad, capacity: formData.capacidad, estado: 'disponible', status: 'disponible', ubicacion: formData.ubicacion, location: formData.ubicacion }),
+    mutationFn: () => tablesService.create({ numero: formData.numero, number: formData.numero, nombre: formData.nombre, name: formData.nombre, capacidad: formData.capacidad, capacity: formData.capacidad, estado: 'disponible', status: 'disponible', ubicacion: formData.ubicacion, location: formData.ubicacion }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tables'] });
       toast.success('Mesa creada exitosamente');
@@ -82,11 +82,11 @@ export default function TablesPage() {
     onError: (err) => handleError(err, 'Error al actualizar estado'),
   });
 
-  const resetForm = () => setFormData({ numero: 0, capacidad: 2, ubicacion: '' });
+  const resetForm = () => setFormData({ numero: 0, nombre: '', capacidad: 2, ubicacion: '' });
 
   const openEdit = (table: Table) => {
     setSelectedTable(table);
-    setFormData({ numero: table.numero, capacidad: table.capacidad, ubicacion: table.ubicacion });
+    setFormData({ numero: table.numero, nombre: table.nombre || '', capacidad: table.capacidad, ubicacion: table.ubicacion });
     setShowEditModal(true);
   };
 
@@ -108,6 +108,65 @@ export default function TablesPage() {
 
   const isEmpty = !tables || tables.length === 0;
   const getTableOrder = (tableId: number) => activeOrders?.data?.find((o) => o.mesa_id === tableId);
+
+  const zones = useMemo(() => {
+    if (!tables) return [];
+    const map = new Map<string, Table[]>();
+    tables.forEach((t) => {
+      const zone = t.ubicacion || 'Sin zona';
+      if (!map.has(zone)) map.set(zone, []);
+      map.get(zone)!.push(t);
+    });
+    return Array.from(map.entries()).sort(([a], [b]) => {
+      if (a === 'Sin zona') return 1;
+      if (b === 'Sin zona') return -1;
+      return a.localeCompare(b);
+    });
+  }, [tables]);
+
+  const renderTableCard = (table: Table) => {
+    const order = getTableOrder(table.id);
+    return (
+      <Card
+        key={table.id}
+        hover
+        onClick={() => handleTableClick(table)}
+        className="relative text-center"
+      >
+        <div className="flex flex-col items-center gap-2">
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold border-2 ${TABLE_STATUS_COLORS[table.estado] || 'border-dark-600 text-dark-400'}`}>
+            {table.numero}
+          </div>
+          <span className="text-sm font-medium text-white">{table.nombre || `Mesa #${table.numero}`}</span>
+          <StatusBadge status={table.estado} label={TABLE_STATUS_LABELS[table.estado]} />
+          <div className="flex items-center gap-1 text-xs text-dark-400">
+            <Users className="w-3 h-3" />
+            {table.capacidad} pers.
+          </div>
+          {order && (
+            <div className="w-full mt-1 pt-2 border-t border-dark-700">
+              <p className="text-xs text-primary-400 font-medium">{formatCurrency(order.total)}</p>
+              <p className="text-xs text-dark-500 mt-0.5">{formatTimeAgo(order.created_at)}</p>
+            </div>
+          )}
+        </div>
+        <div className="absolute top-2 right-2 flex gap-1">
+          <button
+            onClick={(e) => { e.stopPropagation(); openEdit(table); }}
+            className="p-1 rounded-md text-dark-400 hover:text-white hover:bg-dark-700 transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); openDelete(table); }}
+            className="p-1 rounded-md text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -138,54 +197,23 @@ export default function TablesPage() {
           action={<Button onClick={() => setShowCreateModal(true)}>Crear Mesa</Button>}
         />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {tables
-            .sort((a, b) => a.numero - b.numero)
-            .map((table) => {
-              const order = getTableOrder(table.id);
-              return (
-                <Card
-                  key={table.id}
-                  hover
-                  onClick={() => handleTableClick(table)}
-                  className="relative text-center"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold border-2 ${TABLE_STATUS_COLORS[table.estado] || 'border-dark-600 text-dark-400'}`}>
-                      {table.numero}
-                    </div>
-                    <StatusBadge status={table.estado} label={TABLE_STATUS_LABELS[table.estado]} />
-                    <div className="flex items-center gap-1 text-xs text-dark-400">
-                      <Users className="w-3 h-3" />
-                      {table.capacidad} pers.
-                    </div>
-                    {table.ubicacion && (
-                      <span className="text-xs text-dark-500">{table.ubicacion}</span>
-                    )}
-                    {order && (
-                      <div className="w-full mt-1 pt-2 border-t border-dark-700">
-                        <p className="text-xs text-primary-400 font-medium">{formatCurrency(order.total)}</p>
-                        <p className="text-xs text-dark-500 mt-0.5">{formatTimeAgo(order.created_at)}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openEdit(table); }}
-                      className="p-1 rounded-md text-dark-400 hover:text-white hover:bg-dark-700 transition-colors"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openDelete(table); }}
-                      className="p-1 rounded-md text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </Card>
-              );
-            })}
+        <div className="space-y-8">
+          {zones.map(([zone, zoneTables]) => (
+            <div key={zone}>
+              <div className="flex items-center gap-2 mb-4">
+                <MapPin className="w-4 h-4 text-primary-400" />
+                <h2 className="text-lg font-semibold text-white">{zone}</h2>
+                <span className="text-xs text-dark-500 bg-dark-800 px-2 py-0.5 rounded-full">
+                  {zoneTables.length} mesa{zoneTables.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {zoneTables
+                  .sort((a, b) => a.numero - b.numero)
+                  .map(renderTableCard)}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -208,6 +236,12 @@ export default function TablesPage() {
             onChange={(e) => setFormData({ ...formData, numero: parseInt(e.target.value) || 0 })}
           />
           <Input
+            label="Nombre"
+            placeholder="Ej: Terraza 1, VIP 1"
+            value={formData.nombre}
+            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+          />
+          <Input
             label="Capacidad"
             type="number"
             value={formData.capacidad}
@@ -225,7 +259,7 @@ export default function TablesPage() {
       <Modal
         isOpen={showEditModal}
         onClose={() => { setShowEditModal(false); setSelectedTable(null); resetForm(); }}
-        title={`Editar Mesa #${selectedTable?.numero}`}
+        title={`Editar ${selectedTable?.nombre || `Mesa #${selectedTable?.numero}`}`}
         footer={
           <>
             <Button variant="secondary" onClick={() => { setShowEditModal(false); setSelectedTable(null); resetForm(); }}>Cancelar</Button>
@@ -239,6 +273,12 @@ export default function TablesPage() {
             type="number"
             value={formData.numero || ''}
             onChange={(e) => setFormData({ ...formData, numero: parseInt(e.target.value) || 0 })}
+          />
+          <Input
+            label="Nombre"
+            placeholder="Ej: Terraza 1, VIP 1"
+            value={formData.nombre}
+            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
           />
           <Input
             label="Capacidad"
@@ -269,7 +309,7 @@ export default function TablesPage() {
         onClose={() => { setShowDeleteConfirm(false); setSelectedTable(null); }}
         onConfirm={() => deleteMutation.mutate()}
         title="Eliminar Mesa"
-        message={`¿Está seguro de eliminar la mesa #${selectedTable?.numero}? Esta acción no se puede deshacer.`}
+        message={`¿Está seguro de eliminar ${selectedTable?.nombre || `la mesa #${selectedTable?.numero}`}? Esta acción no se puede deshacer.`}
         loading={deleteMutation.isPending}
       />
     </div>

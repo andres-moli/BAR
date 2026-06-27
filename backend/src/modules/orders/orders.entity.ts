@@ -43,6 +43,7 @@ export class Order {
       id: this.id,
       mesa_id: this.tableId,
       mesa_numero: this.table?.number,
+      mesa_nombre: this.table?.name,
       usuario_id: this.userId,
       usuario_nombre: this.user?.name,
       cliente_id: this.clientId,

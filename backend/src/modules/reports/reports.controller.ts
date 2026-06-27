@@ -7,39 +7,49 @@ const wrap = (fn: (req: Request, res: Response, next: NextFunction) => Promise<v
 export class ReportController {
   constructor(private service: ReportsService) {}
 
+  private wrapData(data: any) {
+    const totales: Record<string, number> = {};
+    if (Array.isArray(data)) {
+      if (data.length > 0 && 'total' in data[0]) {
+        totales.total = data.reduce((s: number, r: any) => s + Number(r.total || 0), 0);
+      }
+    }
+    return { data, totales };
+  }
+
   salesByDayHandler = wrap(async (req, res) => {
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
     const data = await this.service.salesByDay(startDate, endDate);
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   salesByMonthHandler = wrap(async (req, res) => {
     const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
     const month = req.query.month ? parseInt(req.query.month as string, 10) : undefined;
     const data = await this.service.salesByMonth(year, month);
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   salesByProductHandler = wrap(async (req, res) => {
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
     const data = await this.service.salesByProduct(startDate, endDate);
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   salesByCategoryHandler = wrap(async (req, res) => {
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
     const data = await this.service.salesByCategory(startDate, endDate);
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   salesByUserHandler = wrap(async (req, res) => {
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
     const data = await this.service.salesByUser(startDate, endDate);
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   topProductsHandler = wrap(async (req, res) => {
@@ -47,19 +57,19 @@ export class ReportController {
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
     const data = await this.service.topProducts(limit, startDate, endDate);
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   paymentMethodsHandler = wrap(async (req, res) => {
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
     const data = await this.service.paymentMethodsReport(startDate, endDate);
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   collectionsHandler = wrap(async (_req, res) => {
     const data = await this.service.collectionsReport();
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 
   dashboardHandler = wrap(async (_req, res) => {
@@ -67,8 +77,15 @@ export class ReportController {
     res.json({ success: true, data });
   });
 
+  profitHandler = wrap(async (req, res) => {
+    const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+    const data = await this.service.getProfit(startDate, endDate);
+    res.json({ success: true, data });
+  });
+
   clientsWithDebtHandler = wrap(async (_req, res) => {
     const data = await this.service.clientsWithDebt();
-    res.json({ success: true, data });
+    res.json({ success: true, data: this.wrapData(data) });
   });
 }

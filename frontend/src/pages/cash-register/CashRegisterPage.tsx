@@ -13,13 +13,14 @@ import { CashRegister, CashMovement, CashRegisterSummary } from '@/types';
 import { formatCurrency, formatTimeAgo as formatTime } from '@/utils/format';
 import { CASH_REGISTER_STATUS_LABELS, CASH_REGISTER_STATUS_COLORS, ACCOUNT_TYPE_LABELS } from '@/utils/constants';
 import { handleError } from '@/utils/errorHandler';
+import CashRegisterReportModal from './CashRegisterReportModal';
 
 export default function CashRegisterPage() {
   const queryClient = useQueryClient();
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [initialAmount, setInitialAmount] = useState(0);
-  const [finalAmount, setFinalAmount] = useState(0);
   const [openNotes, setOpenNotes] = useState('');
   const [closeNotes, setCloseNotes] = useState('');
 
@@ -32,13 +33,13 @@ export default function CashRegisterPage() {
   const { data: movements } = useQuery({
     queryKey: ['cash-register', 'movements', currentRegister?.id],
     queryFn: () => cashRegisterService.getMovements(currentRegister!.id),
-    enabled: !!currentRegister && currentRegister.status === 'OPEN',
+    enabled: !!currentRegister,
   });
 
   const { data: summary } = useQuery({
     queryKey: ['cash-register', 'summary', currentRegister?.id],
     queryFn: () => cashRegisterService.getSummary(currentRegister!.id),
-    enabled: !!currentRegister && currentRegister.status === 'OPEN',
+    enabled: !!currentRegister,
   });
 
   const openMutation = useMutation({
@@ -54,19 +55,19 @@ export default function CashRegisterPage() {
   });
 
   const closeMutation = useMutation({
-    mutationFn: () => cashRegisterService.close({ finalAmount: 0, notes: closeNotes || undefined }),
+    mutationFn: () => cashRegisterService.close({ notes: closeNotes || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cash-register'] });
       toast.success('Caja cerrada exitosamente');
       setShowCloseModal(false);
-      setFinalAmount(0);
       setCloseNotes('');
     },
     onError: (err) => handleError(err, 'Error al cerrar caja'),
   });
 
-  const handlePrintReport = () => {
-    toast.success('Imprimiendo reporte...');
+  const handleOpenReport = () => {
+    if (!currentRegister) return;
+    setShowReportModal(true);
   };
 
   if (isLoading) {
@@ -146,7 +147,6 @@ export default function CashRegisterPage() {
           <div className="flex gap-3">
             {isOpen && (
               <Button variant="danger" size="lg" onClick={() => {
-                setFinalAmount(0);
                 setShowCloseModal(true);
               }}>
                 Cerrar Caja
@@ -157,8 +157,8 @@ export default function CashRegisterPage() {
                 Abrir Nueva Caja
               </Button>
             )}
-            <Button variant="secondary" size="lg" icon={<Printer size={16} />} onClick={handlePrintReport}>
-              Imprimir Reporte
+            <Button variant="secondary" size="lg" icon={<Printer size={16} />} onClick={handleOpenReport}>
+              Ver Reporte
             </Button>
           </div>
 
@@ -229,11 +229,11 @@ export default function CashRegisterPage() {
 
       <Modal
         isOpen={showCloseModal}
-        onClose={() => { setShowCloseModal(false); setFinalAmount(0); setCloseNotes(''); }}
+        onClose={() => { setShowCloseModal(false); setCloseNotes(''); }}
         title="Cerrar Caja"
         footer={
           <>
-            <Button variant="secondary" onClick={() => { setShowCloseModal(false); setFinalAmount(0); setCloseNotes(''); }}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => { setShowCloseModal(false); setCloseNotes(''); }}>Cancelar</Button>
             <Button variant="danger" onClick={() => closeMutation.mutate()} loading={closeMutation.isPending}>
               Cerrar Caja
             </Button>
@@ -272,6 +272,16 @@ export default function CashRegisterPage() {
           />
         </div>
       </Modal>
+
+      {currentRegister && (
+        <CashRegisterReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          register={currentRegister}
+          movements={movements || []}
+          summary={summary || []}
+        />
+      )}
     </div>
   );
 }

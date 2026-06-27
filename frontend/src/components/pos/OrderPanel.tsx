@@ -75,7 +75,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
       {table && (
         <div className="px-4 py-2 bg-gray-800/50 border-b border-gray-800 flex items-center justify-between">
           <span className="text-xs text-gray-400">
-            Mesa <span className="text-white font-medium">#{table.numero}</span>
+            <span className="text-white font-medium">{table.nombre || `Mesa #${table.numero}`}</span>
           </span>
           <button
             onClick={onChangeTable}
@@ -103,7 +103,7 @@ export const OrderPanel: React.FC<OrderPanelProps> = ({
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 mr-2">
                     <p className="text-sm font-medium text-gray-200 truncate">
-                      {item.producto_nombre}
+                      {item.combo_nombre || item.producto_nombre}
                     </p>
                     <p className="text-xs text-gray-500">
                       {formatPrice(item.precio_unitario)} c/u

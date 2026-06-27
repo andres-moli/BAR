@@ -25,9 +25,11 @@ import CategoriesPage from '@/pages/categories/CategoriesPage';
 import AccountsPage from '@/pages/accounts/AccountsPage';
 import PaymentMethodsPage from '@/pages/payment-methods/PaymentMethodsPage';
 import CashRegisterPage from '@/pages/cash-register/CashRegisterPage';
+import CashRegisterHistoryPage from '@/pages/cash-register/CashRegisterHistoryPage';
 import InventoryPage from '@/pages/inventory/InventoryPage';
 import ProductMovementsPage from '@/pages/inventory/ProductMovementsPage';
 import SubOrdersPage from '@/pages/orders/SubOrdersPage';
+import CombosPage from '@/pages/combos/CombosPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,7 +99,12 @@ function App() {
               <Route path="payment-methods" element={
                 <ProtectedRoute roles={['admin']}><PaymentMethodsPage /></ProtectedRoute>
               } />
-              <Route path="cash-register" element={<CashRegisterPage />} />
+              <Route path="cash-register" element={
+                <ProtectedRoute roles={['admin']}><CashRegisterPage /></ProtectedRoute>
+              } />
+              <Route path="cash-register/history" element={
+                <ProtectedRoute roles={['admin']}><CashRegisterHistoryPage /></ProtectedRoute>
+              } />
               <Route path="inventory" element={
                 <ProtectedRoute roles={['admin']}><InventoryPage /></ProtectedRoute>
               } />
@@ -107,6 +114,7 @@ function App() {
               <Route path="sub-orders" element={
                 <ProtectedRoute roles={['admin']}><SubOrdersPage /></ProtectedRoute>
               } />
+              <Route path="combos" element={<CombosPage />} />
             </Route>
           </Routes>
           <Toaster

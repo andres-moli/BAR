@@ -12,8 +12,10 @@ export class OrderItem {
   @Column({ type: 'varchar', nullable: true }) notes: string;
   @Column({ type: 'varchar', name: 'order_id' }) orderId: string;
   @ManyToOne(() => Order, o => o.items) @JoinColumn({ name: 'order_id' }) order: Order;
-  @Column({ type: 'varchar', name: 'product_id' }) productId: string;
+  @Column({ type: 'varchar', name: 'product_id', nullable: true }) productId: string;
   @ManyToOne(() => Product) @JoinColumn({ name: 'product_id' }) product: Product;
+  @Column({ type: 'varchar', name: 'combo_id', nullable: true }) comboId: string;
+  @Column({ type: 'varchar', name: 'combo_name', nullable: true }) comboName: string;
   @Column({ type: 'varchar', name: 'sub_order_id', nullable: true }) subOrderId: string;
   @ManyToOne(() => SubOrder) @JoinColumn({ name: 'sub_order_id' }) subOrder: SubOrder;
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
@@ -25,6 +27,8 @@ export class OrderItem {
       pedido_id: this.orderId,
       producto_id: this.productId,
       producto_nombre: this.product?.name,
+      combo_id: this.comboId,
+      combo_nombre: this.comboId && !this.comboName ? 'Combo' : this.comboName,
       cantidad: this.quantity,
       precio_unitario: this.unitPrice,
       subtotal: this.subtotal,

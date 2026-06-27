@@ -18,6 +18,8 @@ import { Account } from '../modules/accounts/accounts.entity';
 import { PaymentMethod } from '../modules/payment-methods/payment-methods.entity';
 import { CashRegister } from '../modules/cash-register/cash-register.entity';
 import { CashMovement } from '../modules/cash-register/cash-movement.entity';
+import { Combo } from '../modules/combos/combo.entity';
+import { ComboProduct } from '../modules/combos/combo-product.entity';
 
 export const AppDataSource = new DataSource({
   type: config.database.type,
@@ -32,6 +34,7 @@ export const AppDataSource = new DataSource({
     User, TableEntity, Category, Product, Order, OrderItem, SubOrder,
     Payment, Invoice, Client, CollectionAccount, CollectionPayment,
     Movement, Account, PaymentMethod, CashRegister, CashMovement,
+    Combo, ComboProduct,
   ],
   subscribers: [],
   migrations: [],
