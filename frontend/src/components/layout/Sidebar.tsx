@@ -99,7 +99,7 @@ const navItems: NavItem[] = [
     icon: <BarChart3 size={20} />,
     roles: ['admin'],
   },
-  { label: 'Caja', path: '/cash-register', icon: <Calculator size={20} />, roles: ['admin'] },
+  { label: 'Caja', path: '/cash-register', icon: <Calculator size={20} />, roles: ['admin', 'cajero'] },
   { label: 'Historial Caja', path: '/cash-register/history', icon: <History size={20} />, roles: ['admin'] },
   { label: 'Categorías', path: '/categories', icon: <Tags size={20} />, roles: ['admin'] },
   { label: 'Cuentas', path: '/accounts', icon: <Landmark size={20} />, roles: ['admin'] },
