@@ -100,7 +100,7 @@ function App() {
                 <ProtectedRoute roles={['admin']}><PaymentMethodsPage /></ProtectedRoute>
               } />
               <Route path="cash-register" element={
-                <ProtectedRoute roles={['admin']}><CashRegisterPage /></ProtectedRoute>
+                <ProtectedRoute roles={['admin', 'cajero']}><CashRegisterPage /></ProtectedRoute>
               } />
               <Route path="cash-register/history" element={
                 <ProtectedRoute roles={['admin']}><CashRegisterHistoryPage /></ProtectedRoute>
