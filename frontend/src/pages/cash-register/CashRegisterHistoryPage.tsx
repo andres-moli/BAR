@@ -92,7 +92,7 @@ export default function CashRegisterHistoryPage() {
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       {register.status === 'CLOSED' && (
                         <Button
-                          size="xs"
+                          size="md"
                           variant="secondary"
                           onClick={() => setReportRegister(register)}
                           icon={<Eye className="w-3.5 h-3.5" />}
