@@ -5,7 +5,8 @@ import { Product } from '../products/products.entity';
 import { Movement } from '../products/movement.entity';
 import { TableEntity, TableStatus } from '../tables/tables.entity';
 import { Combo } from '../combos/combo.entity';
-import { NotFoundError, ConflictError } from '../../shared/errors';
+import { CashRegister, CashRegisterStatus } from '../cash-register/cash-register.entity';
+import { NotFoundError, ConflictError, ForbiddenError } from '../../shared/errors';
 import { CreateOrderDto, AddItemDto, UpdateItemDto, SplitOrderDto } from './orders.dto';
 
 const TAX_RATE = 0;
@@ -18,6 +19,7 @@ export class OrdersService {
     private tableRepo: Repository<TableEntity>,
     private movementRepo: Repository<Movement>,
     private comboRepo: Repository<Combo>,
+    private cashRegisterRepo: Repository<CashRegister>,
   ) {}
 
   async findAll(filters?: { status?: string; tableId?: string; userId?: string; clientId?: string; startDate?: Date; endDate?: Date }): Promise<Order[]> {
@@ -91,6 +93,9 @@ export class OrdersService {
   }
 
   async create(dto: CreateOrderDto): Promise<Order> {
+    const openRegister = await this.cashRegisterRepo.findOne({ where: { status: CashRegisterStatus.OPEN } });
+    if (!openRegister) throw new ForbiddenError('No hay una caja abierta. Debe abrir caja antes de crear pedidos.');
+
     const versionGroupId = `vg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const order = this.orderRepo.create({
       tableId: dto.tableId,

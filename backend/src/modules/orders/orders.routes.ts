@@ -6,6 +6,7 @@ import { Product } from '../products/products.entity';
 import { Movement } from '../products/movement.entity';
 import { TableEntity } from '../tables/tables.entity';
 import { Combo } from '../combos/combo.entity';
+import { CashRegister } from '../cash-register/cash-register.entity';
 import { OrdersService } from './orders.service';
 import { OrderController } from './orders.controller';
 import { authenticate, authorize, validate } from '../../shared/middleware';
@@ -19,7 +20,8 @@ export function registerOrderRoutes(router: Router): void {
   const movementRepo = AppDataSource.getRepository(Movement);
   const tableRepo = AppDataSource.getRepository(TableEntity);
   const comboRepo = AppDataSource.getRepository(Combo);
-  const ordersService = new OrdersService(orderRepo, orderItemRepo, productRepo, tableRepo, movementRepo, comboRepo);
+  const cashRegisterRepo = AppDataSource.getRepository(CashRegister);
+  const ordersService = new OrdersService(orderRepo, orderItemRepo, productRepo, tableRepo, movementRepo, comboRepo, cashRegisterRepo);
   const ordersController = new OrderController(ordersService);
 
   subrouter.get('/', authenticate, ordersController.getAll);

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Users, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, MapPin, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tablesService } from '@/services/tables';
 import { ordersService } from '@/services/orders';
+import { cashRegisterService } from '@/services/cashRegister';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
@@ -37,6 +38,12 @@ export default function TablesPage() {
   const { data: activeOrders } = useQuery({
     queryKey: ['orders', 'active'],
     queryFn: () => ordersService.getAll({ estado: 'activa', limit: 100 }),
+  });
+
+  const { data: currentRegister } = useQuery({
+    queryKey: ['cash-register', 'current'],
+    queryFn: cashRegisterService.getCurrent,
+    refetchInterval: 15000,
   });
 
   const createMutation = useMutation({
@@ -97,6 +104,10 @@ export default function TablesPage() {
 
   const handleTableClick = (table: Table) => {
     if (table.estado === 'disponible') {
+      if (!hasOpenRegister) {
+        toast.error('No hay caja abierta. Abra caja antes de crear pedidos.');
+        return;
+      }
       navigate(`/tables/${table.id}`);
     } else if (table.estado === 'ocupada') {
       const order = activeOrders?.data?.find((o) => o.mesa_id === table.id);
@@ -106,6 +117,7 @@ export default function TablesPage() {
     }
   };
 
+  const hasOpenRegister = !!currentRegister;
   const isEmpty = !tables || tables.length === 0;
   const getTableOrder = (tableId: number) => activeOrders?.data?.find((o) => o.mesa_id === tableId);
 
@@ -185,6 +197,16 @@ export default function TablesPage() {
           Nueva Mesa
         </Button>
       </div>
+
+      {!hasOpenRegister && (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+          <AlertTriangle className="w-5 h-5 shrink-0" />
+          <div>
+            <p className="font-medium">No hay caja abierta</p>
+            <p className="text-sm text-amber-400/70">Debe abrir caja antes de crear pedidos</p>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">

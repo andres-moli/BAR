@@ -13,11 +13,20 @@ export class AuthService {
   ) {}
 
   async login(data: LoginDto): Promise<AuthResponseDto> {
-    const user = await this.userRepo.findOne({ where: { email: data.email } });
-    if (!user) throw new UnauthorizedError('Invalid email or password');
+    let user: User | null = null;
 
-    const isValid = await bcrypt.compare(data.password, user.password);
-    if (!isValid) throw new UnauthorizedError('Invalid email or password');
+    if (data.code) {
+      user = await this.userRepo.findOne({ where: { code: data.code } });
+      if (!user) throw new UnauthorizedError('Invalid code');
+    } else if (data.email && data.password) {
+      user = await this.userRepo.findOne({ where: { email: data.email } });
+      if (!user) throw new UnauthorizedError('Invalid email or password');
+
+      const isValid = await bcrypt.compare(data.password, user.password);
+      if (!isValid) throw new UnauthorizedError('Invalid email or password');
+    } else {
+      throw new UnauthorizedError('Invalid credentials');
+    }
 
     if (!user.isActive) throw new UnauthorizedError('Account is disabled');
 

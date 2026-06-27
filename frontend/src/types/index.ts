@@ -9,6 +9,7 @@ export interface User {
   nombre: string;
   full_name: string;
   email: string;
+  codigo?: string;
   password?: string;
   rol: UserRole;
   role: UserRole;
@@ -298,8 +299,9 @@ export interface PaginatedResponse<T> {
 }
 
 export interface LoginCredentials {
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
+  code?: string;
 }
 
 export interface AuthResponse {

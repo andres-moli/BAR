@@ -4,6 +4,12 @@ import { User } from './users.entity';
 import { CreateUserDto, UpdateUserDto } from './users.dto';
 import { NotFoundError, ConflictError } from '../../shared/errors';
 
+function generateUniqueCode(length = 4): string {
+  let code = '';
+  for (let i = 0; i < length; i++) code += Math.floor(Math.random() * 10).toString();
+  return code;
+}
+
 export class UsersService {
   constructor(private userRepo: Repository<User>) {}
 
@@ -24,7 +30,13 @@ export class UsersService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(data.password, salt);
 
-    const user = this.userRepo.create({ ...data, password: hashedPassword });
+    let code = data.code;
+    if (!code) {
+      do { code = generateUniqueCode(); }
+      while (await this.userRepo.findOne({ where: { code } }));
+    }
+
+    const user = this.userRepo.create({ ...data, code, password: hashedPassword });
     return this.userRepo.save(user);
   }
 
@@ -34,6 +46,11 @@ export class UsersService {
     if (data.email && data.email !== user.email) {
       const existing = await this.userRepo.findOne({ where: { email: data.email } });
       if (existing) throw new ConflictError('Email already in use');
+    }
+
+    if (data.code && data.code !== user.code) {
+      const existing = await this.userRepo.findOne({ where: { code: data.code } });
+      if (existing) throw new ConflictError('Code already in use');
     }
 
     Object.assign(user, data);

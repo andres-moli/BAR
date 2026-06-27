@@ -20,7 +20,7 @@ export default function UsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
   const [formData, setFormData] = useState({
-    nombre: '', email: '', password: '', rol: 'mesero' as UserRole,
+    nombre: '', email: '', password: '', codigo: '', rol: 'mesero' as UserRole,
   });
 
   const { data, isLoading } = useQuery({
@@ -30,7 +30,7 @@ export default function UsersPage() {
 
   const createMutation = useMutation({
     // @ts-ignore
-    mutationFn: () => usersService.create({ ...formData, full_name: formData.nombre, role: formData.rol as UserRole, activo: true }),
+    mutationFn: () => usersService.create({ ...formData, codigo: formData.codigo || undefined, full_name: formData.nombre, role: formData.rol as UserRole, activo: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Usuario creado exitosamente');
@@ -40,7 +40,7 @@ export default function UsersPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: () => usersService.update(editingUser!.id, formData.password ? formData : { nombre: formData.nombre, email: formData.email, rol: formData.rol }),
+    mutationFn: () => usersService.update(editingUser!.id, formData.password ? { ...formData, codigo: formData.codigo || undefined } : { nombre: formData.nombre, email: formData.email, rol: formData.rol, codigo: formData.codigo || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Usuario actualizado');
@@ -60,20 +60,20 @@ export default function UsersPage() {
 
   const openCreate = () => {
     setEditingUser(null);
-    setFormData({ nombre: '', email: '', password: '', rol: 'mesero' });
+    setFormData({ nombre: '', email: '', password: '', codigo: '', rol: 'mesero' });
     setShowModal(true);
   };
 
   const openEdit = (user: UserType) => {
     setEditingUser(user);
-    setFormData({ nombre: user.nombre, email: user.email, password: '', rol: user.rol });
+    setFormData({ nombre: user.nombre, email: user.email, password: '', codigo: user.codigo || '', rol: user.rol });
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setEditingUser(null);
-    setFormData({ nombre: '', email: '', password: '', rol: 'mesero' });
+    setFormData({ nombre: '', email: '', password: '', codigo: '', rol: 'mesero' });
   };
 
   const columns: Column<UserType>[] = [
@@ -86,6 +86,7 @@ export default function UsersPage() {
       </div>
     )},
     { key: 'email', header: 'Email', render: (u) => <span className="text-dark-300 text-xs">{u.email}</span> },
+    { key: 'codigo', header: 'Código', render: (u) => <span className="text-dark-300 text-xs font-mono">{u.codigo || '-'}</span> },
     { key: 'rol', header: 'Rol', render: (u) => (
       <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${USER_ROLE_COLORS[u.rol] || ''}`}>
         {USER_ROLE_LABELS[u.rol] || u.rol}
@@ -153,6 +154,8 @@ export default function UsersPage() {
           <Input label={editingUser ? 'Nueva Contraseña (dejar vacío para mantener)' : 'Contraseña'}
             type="password" placeholder="••••••••" value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          <Input label="Código (4 dígitos)" placeholder="1234" maxLength={4} value={formData.codigo}
+            onChange={(e) => setFormData({ ...formData, codigo: e.target.value.replace(/\D/g, '').slice(0, 4) })} />
           <Select label="Rol" value={formData.rol}
             onChange={(e) => setFormData({ ...formData, rol: e.target.value as UserRole })}
             options={[

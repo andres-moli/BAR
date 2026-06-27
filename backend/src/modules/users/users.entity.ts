@@ -24,6 +24,9 @@ export class User {
   @Column({ type: 'varchar', unique: true })
   email: string;
 
+  @Column({ type: 'varchar', length: 4, unique: true, nullable: true })
+  code: string;
+
   @Column({ type: 'varchar' })
   password: string;
 
@@ -54,6 +57,7 @@ export class User {
       nombre: this.name,
       full_name: this.name,
       email: this.email,
+      codigo: this.code,
       rol: mapUserRole(this.role),
       activo: this.isActive,
       created_at: this.createdAt,

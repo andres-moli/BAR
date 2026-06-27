@@ -1,40 +1,41 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, LogIn, Key } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
-const loginSchema = z.object({
-  email: z.string().email('Ingrese un email válido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
-
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [mode, setMode] = useState<'email' | 'code'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-  });
-
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       setError('');
       setLoading(true);
-      await login(data);
+      if (mode === 'code') {
+        if (code.length !== 4 || !/^\d{4}$/.test(code)) {
+          setError('El código debe ser de 4 dígitos');
+          setLoading(false);
+          return;
+        }
+        await login({ code });
+      } else {
+        if (!email || !password) {
+          setError('Ingrese email y contraseña');
+          setLoading(false);
+          return;
+        }
+        await login({ email, password });
+      }
       navigate('/', { replace: true });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al iniciar sesión';
@@ -66,33 +67,69 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="admin@barpos.com"
-              icon={<Mail className="w-4 h-4" />}
-              error={errors.email?.message}
-              {...register('email')}
-            />
+          <div className="flex mb-6 bg-dark-800 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setMode('email')}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'email' ? 'bg-primary-600 text-white' : 'text-dark-400 hover:text-white'}`}
+            >
+              <Mail className="w-4 h-4 inline mr-1.5" />
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('code')}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${mode === 'code' ? 'bg-primary-600 text-white' : 'text-dark-400 hover:text-white'}`}
+            >
+              <Key className="w-4 h-4 inline mr-1.5" />
+              Código
+            </button>
+          </div>
 
-            <div className="relative">
-              <Input
-                label="Contraseña"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                icon={<Lock className="w-4 h-4" />}
-                error={errors.password?.message}
-                {...register('password')}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[38px] text-dark-400 hover:text-dark-200 transition-colors"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+          <form onSubmit={onSubmit} className="space-y-4">
+            {mode === 'email' ? (
+              <>
+                <Input
+                  label="Email"
+                  type="email"
+                  placeholder="admin@barpos.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  icon={<Mail className="w-4 h-4" />}
+                />
+
+                <div className="relative">
+                  <Input
+                    label="Contraseña"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    icon={<Lock className="w-4 h-4" />}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-[38px] text-dark-400 hover:text-dark-200 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div>
+                <Input
+                  label="Código de 4 dígitos"
+                  type="text"
+                  placeholder="1234"
+                  maxLength={4}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  icon={<Key className="w-4 h-4" />}
+                />
+                <p className="text-xs text-dark-500 mt-1">Ingrese su código único de 4 dígitos</p>
+              </div>
+            )}
 
             <Button type="submit" loading={loading} className="w-full" size="lg">
               <LogIn className="w-4 h-4" />

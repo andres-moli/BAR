@@ -15,6 +15,7 @@ import {
   Move,
   ArrowRight,
   Check,
+  AlertTriangle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tablesService } from '@/services/tables';
@@ -23,6 +24,7 @@ import { categoriesService } from '@/services/categories';
 import { ordersService } from '@/services/orders';
 import { combosService } from '@/services/combos';
 import { subOrdersService } from '@/services/subOrders';
+import { cashRegisterService } from '@/services/cashRegister';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -85,6 +87,12 @@ export default function TableDetailPage() {
   const { data: allTables } = useQuery({
     queryKey: ['tables'],
     queryFn: () => tablesService.getAll(),
+  });
+
+  const { data: currentRegister } = useQuery({
+    queryKey: ['cash-register', 'current'],
+    queryFn: cashRegisterService.getCurrent,
+    refetchInterval: 15000,
   });
 
   const { data: activeOrders } = useQuery({
@@ -295,6 +303,16 @@ export default function TableDetailPage() {
           </div>
           <StatusBadge status={table.estado} label={TABLE_STATUS_LABELS[table.estado]} size="md" />
         </div>
+
+        {!currentRegister && (
+          <div className="flex items-center gap-3 p-4 mb-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <div>
+              <p className="font-medium">No hay caja abierta</p>
+              <p className="text-sm text-amber-400/70">Debe abrir caja antes de crear pedidos</p>
+            </div>
+          </div>
+        )}
 
         <div className="mb-4">
           <Input

@@ -29,6 +29,7 @@ const FIELD_MAP: Record<string, string> = {
   productos: 'productIds',
   combo_id: 'comboId',
   mostrar_en_menu: 'showInMenu',
+  codigo: 'code',
 };
 
 const ENUM_VALUE_MAP: Record<string, Record<string, string>> = {

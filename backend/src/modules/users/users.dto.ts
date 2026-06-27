@@ -5,6 +5,7 @@ export interface CreateUserDto {
   password: string;
   name: string;
   role: UserRole;
+  code?: string;
 }
 
 export interface UpdateUserDto {
@@ -12,6 +13,7 @@ export interface UpdateUserDto {
   name?: string;
   role?: UserRole;
   isActive?: boolean;
+  code?: string;
 }
 
 export interface UserResponseDto {
